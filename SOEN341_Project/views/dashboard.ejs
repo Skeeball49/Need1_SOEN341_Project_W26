@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="container">
+    <section class="section">
+      <h1>Welcome back 👋</h1>
+      <p class="muted">Here’s your profile overview.</p>
+
+      <div class="card-grid">
+
+        <div class="feature-card">
+          <h3>Email</h3>
+          <p><%= user.email %></p>
+        </div>
+
+        <div class="feature-card">
+          <h3>Diet Preference</h3>
+          <p><%= user.diet %></p>
+        </div>
+
+        <div class="feature-card">
+          <h3>Allergies</h3>
+          <p><%= user.allergies %></p>
+        </div>
+
+      </div>
+
+      <div style="margin-top:30px">
+        <a class="btn" href="/">Back to home</a>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>
