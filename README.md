@@ -29,7 +29,7 @@ Sprint 1 focuses on the core part of **User Account Management**:
 - **Member 1** — Name Ibrahim Senhaji(ID: 40316859) — Role: 
 - **Member 2** — Name Santiago Restrepodiaz(ID: 40212913) — Role: 
 - **Member 3** — Name Sebastien Keenan(ID: 40246291) — Role: 
-- **Member 4** — Name Amir Hossainshiri(ID: 40266795) — Role: 
+- **Member 4** — Name Amir Shiri(ID: 40266795) — Role: 
 - **Member 5** — Name Obi (ID: 40235035) — Role: 
 
 
