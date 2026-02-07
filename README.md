@@ -18,19 +18,14 @@ This project follows an Agile/Scrum approach across multiple sprints. We use Git
 
 > By mid-semester, the team will propose and implement an additional feature integrated with the baseline features.
 
-## Sprint 1 Focus
-Sprint 1 focuses on the core part of **User Account Management**:
-- User registration and login
-- Profile management (diet preferences, allergies)
-- Demo at least one User Account Management functionality (e.g., login) 
-## Team Members & Roles
-> (Replace the placeholders below with your real names, student IDs, and roles.)
 
-- **Member 1** — Name Ibrahim Senhaji(ID: 40316859) — Role: 
-- **Member 2** — Name Santiago Restrepodiaz(ID: 40212913) — Role: 
-- **Member 3** — Name Sebastien Keenan(ID: 40246291) — Role: 
-- **Member 4** — Name Amir Hossainshiri(ID: 40266795) — Role: 
-- **Member 5** — Name Obi (ID: 40235035) — Role: 
+## Team Members & Roles
+> 
+- **Member 1** – Name Ibrahim Senhaji (ID: 40316859) – Role: Backend Developer & GitHub Workflow
+- **Member 2** – Name Santiago Restrepodiaz (ID: 40212913) – Role: Frontend Developer (EJS, CSS)
+- **Member 3** – Name Sebastien Keenan (ID: 40246291) – Role: Scrum Master & Sprint Planning
+- **Member 4** – Name Amir Shiri (ID: 40266795) – Role: Documentation & Meeting Minutes
+- **Member 5** – Name Obi (ID: 40235035) – Role: Testing & User Stories
 
 
 ## Tools & Workflow
@@ -38,5 +33,13 @@ Sprint 1 focuses on the core part of **User Account Management**:
   - **User Stories** with prefix `US.##`
   - **Tasks** with prefix `Task.##` 
 
-## How to Run (Prototype)
+## How to Run (Prototype)Clone the repository to your local machine.
+- Navigate to the project root directory.
+- Initiate the project using npm init -y
+- Install the required dependencies using `npm install`that will install the modules
+- Start the application by running `node SOEN341_Project/index.js` (or `npm run dev` if nodemon is installed).
+- Open a web browser and access the application at `http://localhost:3000`.
+
+This prototype demonstrates basic user registration, login, and profile display using a Node.js, Express, and EJS-based frontend.
+
 
