@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recipex</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="bg-blur"></div>
+  <%-include("../partials/navbar") %>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-left">
+        <div class="badge">Recipex</div><!--Name of app-->
+        <h1>Plan meals faster.<br/>Eat better on a student schedule.</h1>
+        <p class="lead">
+          MealMajor helps you organize recipes, build a weekly meal plan, and keep track of groceries —
+          without the chaos.
+        </p>
+
+        <div class="hero-ctas">
+          <a class="btn btn-lg" href="/register">Get started</a>
+          <a class="btn btn-ghost btn-lg" href="/login">I already have an account</a>
+        </div>
+
+        <div class="mini-stats">
+          <div class="stat">
+            <div class="stat-top">⏱️</div>
+            <div class="stat-title">Quick planning</div>
+            <div class="muted">Weekly grid view</div>
+          </div>
+          <div class="stat">
+            <div class="stat-top">🥗</div>
+            <div class="stat-title">Diet-aware</div>
+            <div class="muted">Prefs + allergies</div>
+          </div>
+          <div class="stat">
+            <div class="stat-top">💸</div>
+            <div class="stat-title">Budget-friendly</div>
+            <div class="muted">Track cost later</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="preview-card">
+          <div class="preview-head">
+            <div>
+              <div class="preview-title">This Week</div>
+              <div class="muted">Prototype preview we will change it after</div>
+            </div>
+            <span class="chip">Planner</span>
+          </div>
+
+          <div class="week-grid">
+            <div class="cell head">Mon</div><div class="cell head">Tue</div><div class="cell head">Wed</div>
+            <div class="cell head">Thu</div><div class="cell head">Fri</div><div class="cell head">Sat</div><div class="cell head">Sun</div>
+
+            <div class="cell">Oats</div><div class="cell">Egg wrap</div><div class="cell">Smoothie</div>
+            <div class="cell">Yogurt</div><div class="cell">Porridge</div><div class="cell">Toast</div><div class="cell">Pancakes</div>
+
+            <div class="cell">Chicken bowl</div><div class="cell">Pasta</div><div class="cell">Salad</div>
+            <div class="cell">Rice + tuna</div><div class="cell">Stir-fry</div><div class="cell">Wrap</div><div class="cell">Soup</div>
+          </div>
+
+          <div class="preview-foot muted">
+            Tip: later we’ll filter recipes using your allergies.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="section-head">
+        <h2>Built for Sprint 1 — ready for future sprints</h2>
+        <p class="muted">Clean UI foundation you can extend into recipes + planner features.</p>
+      </div>
+
+      <div class="card-grid">
+        <div class="feature-card">
+          <div class="icon">🔐</div>
+          <h3>Login & Register</h3>
+          <p class="muted">Simple, clean authentication pages with a modern layout.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">👤</div>
+          <h3>Profile basics</h3>
+          <p class="muted">Diet preferences and allergies can plug in later.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📅</div>
+          <h3>Weekly planner</h3>
+          <p class="muted">The UI already hints at a weekly grid experience.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="how" class="section split">
+      <div class="split-card">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li><span class="num">1</span> Create an account</li>
+          <li><span class="num">2</span> Add your preferences</li>
+          <li><span class="num">3</span> Plan your week</li>
+        </ol>
+      </div>
+      <div class="split-card">
+        <h2>Why students like it</h2>
+        <ul class="bullets">
+          <li>Less time thinking “what do I eat?”</li>
+          <li>More consistent healthy meals</li>
+          <li>Easy to extend with recipes + grocery tracking</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="section-head">
+        <h2>FAQ</h2>
+        <p class="muted">Just UI for now — backend comes next.</p>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>Is this connected to a database?</summary>
+          <p class="muted">Not yet. This is the Sprint 1 front-end. We’ll wire the backend after.</p>
+        </details>
+        <details>
+          <summary>Can we demo login/register?</summary>
+          <p class="muted">Yes — once we connect the POST routes and sessions, these pages are ready.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
