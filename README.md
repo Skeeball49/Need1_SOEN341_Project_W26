@@ -31,7 +31,10 @@ This project follows an Agile/Scrum approach across multiple sprints. We use Git
 ## Tools & Workflow
 - GitHub Issues used for:
   - **User Stories** with prefix `US.##`
-  - **Tasks** with prefix `Task.##` 
+  - **Tasks** with prefix `Task.##`
+  - 
+- EJS CSS for the Front-End
+- Node.JS for the backend
 
 ## How to Run (Prototype)Clone the repository to your local machine.
 - Navigate to the project root directory.
