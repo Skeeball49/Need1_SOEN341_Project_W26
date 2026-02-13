@@ -4,5 +4,11 @@
     "password": "123456",
     "diet": "Not defined yet",
     "allergies": " Not Defined Yet"
+  },
+  {
+    "email": "ko@gmail.com",
+    "password": "12345678",
+    "diet": "",
+    "allergies": ""
   }
 ]
