@@ -72,6 +72,23 @@ app.get("/dashboard", (req, res) =>
   })
 );
 
+app.post("/update-profile", (req, res) => {
+  const { email, diet, allergies } = req.body;
+
+  const users = readUsers();
+  const userIndex = users.findIndex(u => u.email === email);
+
+  if (userIndex === -1) {
+    return res.status(404).send("User not found");
+  }
+
+  users[userIndex].diet = diet || "";
+  users[userIndex].allergies = allergies || "";
+  writeUsers(users);
+
+  return res.render("dashboard.ejs", { user: users[userIndex] });
+});
+
 app.listen(3000, () => console.log("http://localhost:3000"));
 
 function readUsers() {
