@@ -1,0 +1,15 @@
+[build]
+  command = "npm install"
+  publish = "public"
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server/:splat"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["views/**", "partials/**", "users.json"]
+
+[functions.server]
+  external_node_modules = ["express", "ejs", "body-parser"]
