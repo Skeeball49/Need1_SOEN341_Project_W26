@@ -1,10 +1,8 @@
 const serverless = require("serverless-http");
 const express = require("express");
 const bodyParser = require("body-parser");
-const fs = require("fs");
 const path = require("path");
-
-const USERS_FILE = path.join(__dirname, "../../users.json");
+const { getUsersCollection } = require("../../db.cjs");
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -18,24 +16,29 @@ app.get("/login", (req, res) => {
   res.render("login.ejs", { error: "" });
 });
 
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const users = readUsers();
-  const user = users.find(u => u.email === email && u.password === password);
+  try {
+    const usersCollection = await getUsersCollection();
+    const user = await usersCollection.findOne({ email, password });
 
-  if (!user) {
-    return res.render("login.ejs", { error: "No account found. Please register first." });
+    if (!user) {
+      return res.render("login.ejs", { error: "No account found. Please register first." });
+    }
+
+    return res.render("dashboard.ejs", { user });
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.render("login.ejs", { error: "An error occurred. Please try again." });
   }
-
-  return res.render("dashboard.ejs", { user });
 });
 
 app.get("/register", (req, res) => {
   res.render("register.ejs", { error: "" });
 });
 
-app.post("/register", (req, res) => {
+app.post("/register", async (req, res) => {
   const { email, password, ConfirmPassword } = req.body;
 
   if (!email || !password || !ConfirmPassword) {
@@ -45,16 +48,19 @@ app.post("/register", (req, res) => {
     return res.render("register.ejs", { error: "Passwords do not match." });
   }
 
-  const users = readUsers();
-  const exists = users.find(u => u.email === email);
-  if (exists) {
-    return res.render("register.ejs", { error: "Account already exists. Please login." });
+  try {
+    const usersCollection = await getUsersCollection();
+    const exists = await usersCollection.findOne({ email });
+    if (exists) {
+      return res.render("register.ejs", { error: "Account already exists. Please login." });
+    }
+
+    await usersCollection.insertOne({ email, password, diet: "", allergies: "" });
+    return res.redirect("/login");
+  } catch (error) {
+    console.error('Registration error:', error);
+    return res.render("register.ejs", { error: "An error occurred. Please try again." });
   }
-
-  users.push({ email, password, diet: "", allergies: "" });
-  writeUsers(users);
-
-  return res.redirect("/login");
 });
 
 app.get("/dashboard", (req, res) => 
@@ -67,35 +73,27 @@ app.get("/dashboard", (req, res) =>
   })
 );
 
-app.post("/update-profile", (req, res) => {
+app.post("/update-profile", async (req, res) => {
   const { email, diet, allergies } = req.body;
 
-  const users = readUsers();
-  const userIndex = users.findIndex(u => u.email === email);
+  try {
+    const usersCollection = await getUsersCollection();
+    const result = await usersCollection.findOneAndUpdate(
+      { email },
+      { $set: { diet: diet || "", allergies: allergies || "" } },
+      { returnDocument: 'after' }
+    );
 
-  if (userIndex === -1) {
-    return res.status(404).send("User not found");
+    if (!result) {
+      return res.status(404).send("User not found");
+    }
+
+    return res.render("dashboard.ejs", { user: result });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).send("An error occurred. Please try again.");
   }
-
-  users[userIndex].diet = diet || "";
-  users[userIndex].allergies = allergies || "";
-  writeUsers(users);
-
-  return res.render("dashboard.ejs", { user: users[userIndex] });
 });
 
-function readUsers() {
-  try {
-    const raw = fs.readFileSync(USERS_FILE, "utf-8");
-    return JSON.parse(raw || "[]");
-  } catch (e) {
-    fs.writeFileSync(USERS_FILE, "[]", "utf-8");
-    return [];
-  }
-}
-
-function writeUsers(users) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
-}
 
 module.exports.handler = serverless(app);

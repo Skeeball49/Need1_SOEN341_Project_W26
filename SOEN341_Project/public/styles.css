@@ -352,11 +352,273 @@ input:focus{
   font-weight:800;
 }
 
+select{
+  padding: 12px 12px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.20);
+  color: var(--text);
+  outline:none;
+  font-family: inherit;
+}
+select:focus{
+  border-color: rgba(91,201,255,0.45);
+  box-shadow: 0 0 0 4px rgba(91,201,255,0.12);
+}
+
 @media (max-width: 900px){
-  .hero{grid-template-columns: 1fr; padding-top: 24px}
-  .mini-stats{grid-template-columns: 1fr; }
-  .week-grid{grid-template-columns: repeat(2, 1fr);}
-  .card-grid{grid-template-columns: 1fr;}
-  .split{grid-template-columns: 1fr;}
-  .nav-links{display:none}
+  .container{
+    width:calc(100% - 32px);
+  }
+  
+  .hero{
+    grid-template-columns: 1fr; 
+    padding-top: 20px;
+    gap: 24px;
+  }
+  
+  h1{
+    font-size: clamp(1.8rem, 7vw, 2.5rem);
+    margin-bottom: 10px;
+  }
+  
+  .lead{
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
+  
+  .hero-ctas{
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .hero-ctas .btn{
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .mini-stats{
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .stat{
+    padding: 14px;
+  }
+  
+  .preview-card{
+    padding: 14px;
+  }
+  
+  .week-grid{
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .cell{
+    padding: 8px 6px;
+    font-size: 0.85rem;
+    min-height: 40px;
+  }
+  
+  .cell.head{
+    min-height: 32px;
+    font-size: 0.8rem;
+  }
+  
+  .card-grid{
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .feature-card{
+    padding: 14px;
+  }
+  
+  .split{
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .split-card{
+    padding: 16px;
+  }
+  
+  .nav-links{
+    display:none;
+  }
+  
+  .nav-inner{
+    padding: 12px 0;
+  }
+  
+  .nav-actions{
+    gap: 8px;
+  }
+  
+  .btn{
+    padding: 10px 14px;
+    font-size: 0.95rem;
+  }
+  
+  .btn-lg{
+    padding: 12px 16px;
+    font-size: 1rem;
+  }
+  
+  .auth{
+    padding: 24px 0;
+  }
+  
+  .auth-card{
+    width: 100%;
+    padding: 16px;
+  }
+  
+  .auth-top h1{
+    font-size: 1.6rem;
+  }
+  
+  .form{
+    gap: 10px;
+  }
+  
+  input, select{
+    padding: 12px 10px;
+    font-size: 16px;
+  }
+  
+  label{
+    gap: 5px;
+    font-size: 0.95rem;
+  }
+  
+  .section{
+    padding: 20px 0;
+  }
+  
+  .section-head h2{
+    font-size: 1.5rem;
+  }
+  
+  .footer-inner{
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .faq details{
+    padding: 10px 12px;
+  }
+  
+  .steps{
+    gap: 8px;
+  }
+  
+  .bullets{
+    padding-left: 20px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px){
+  .container{
+    width:calc(100% - 24px);
+  }
+  
+  h1{
+    font-size: 1.6rem;
+    letter-spacing: -0.4px;
+  }
+  
+  .badge{
+    font-size: 0.85rem;
+    padding: 5px 9px;
+  }
+  
+  .lead{
+    font-size: 0.95rem;
+  }
+  
+  .btn{
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .btn-lg{
+    padding: 11px 14px;
+    font-size: 0.95rem;
+  }
+  
+  .week-grid{
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  
+  .cell{
+    min-height: 36px;
+    padding: 8px;
+  }
+  
+  .preview-card{
+    padding: 12px;
+  }
+  
+  .chip{
+    font-size: 0.8rem;
+    padding: 5px 8px;
+  }
+  
+  .auth-card{
+    padding: 14px;
+  }
+  
+  .auth-top h1{
+    font-size: 1.4rem;
+  }
+  
+  .auth-top p{
+    font-size: 0.9rem;
+  }
+  
+  input, select{
+    font-size: 16px;
+  }
+  
+  .stat{
+    padding: 12px;
+  }
+  
+  .stat-top{
+    font-size: 1.1rem;
+  }
+  
+  .feature-card{
+    padding: 12px;
+  }
+  
+  .feature-card h3{
+    font-size: 1rem;
+  }
+  
+  .split-card{
+    padding: 14px;
+  }
+  
+  .split-card h2{
+    font-size: 1.3rem;
+  }
+  
+  .nav-inner{
+    padding: 10px 0;
+  }
+  
+  .logo-text{
+    font-size: 0.95rem;
+  }
+  
+  .footer{
+    padding: 14px 0;
+    font-size: 0.9rem;
+  }
 }
