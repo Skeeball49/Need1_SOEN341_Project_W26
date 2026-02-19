@@ -19,6 +19,6 @@
     "ejs": "^4.0.1",
     "express": "^5.2.1",
     "mongodb": "^6.21.0",
-    "serverless-http": "^3.2.0"
+    "serverless-http": "^2.7.0"
   }
 }
