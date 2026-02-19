@@ -4,7 +4,7 @@
 
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/server/:splat"
+  to = "/.netlify/functions/server"
   status = 200
 
 [functions]
@@ -12,4 +12,4 @@
   included_files = ["views/**", "partials/**", "db.cjs"]
 
 [functions.server]
-  external_node_modules = ["express", "ejs", "body-parser", "mongodb", "dotenv"]
+  external_node_modules = ["express", "ejs", "mongodb", "dotenv", "serverless-http"]
