@@ -5,6 +5,7 @@ const path = require("path");
 const { getUsersCollection } = require("../../db.cjs");
 
 const app = express();
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "../../views"));
@@ -96,4 +97,14 @@ app.post("/update-profile", async (req, res) => {
 });
 
 
-module.exports.handler = serverless(app);
+const handler = serverless(app);
+
+module.exports.handler = async (event, context) => {
+  // Parse body if it's base64 encoded or a string
+  if (event.body && typeof event.body === 'string' && !event.isBase64Encoded) {
+    // Body is already a string, let serverless-http handle it
+    return handler(event, context);
+  }
+  
+  return handler(event, context);
+};
