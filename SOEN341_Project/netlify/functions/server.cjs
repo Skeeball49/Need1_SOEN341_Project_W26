@@ -1,18 +1,10 @@
 const serverless = require("serverless-http");
 const express = require("express");
 const path = require("path");
-const { getUsersCollection } = require("../../db.cjs");
+const { findUser, createUser, updateUser } = require("../../storage.cjs");
 
 const app = express();
 
-// Critical: Use raw body parser first, then URL-encoded parser
-app.use(express.raw({ type: 'application/x-www-form-urlencoded' }));
-app.use((req, res, next) => {
-  if (Buffer.isBuffer(req.body)) {
-    req.body = req.body.toString('utf-8');
-  }
-  next();
-});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -25,15 +17,14 @@ app.get("/login", (req, res) => {
   res.render("login.ejs", { error: "" });
 });
 
-app.post("/login", async (req, res) => {
+app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const usersCollection = await getUsersCollection();
-    const user = await usersCollection.findOne({ email, password });
+    const user = findUser(email);
 
-    if (!user) {
-      return res.render("login.ejs", { error: "No account found. Please register first." });
+    if (!user || user.password !== password) {
+      return res.render("login.ejs", { error: "Invalid email or password." });
     }
 
     return res.render("dashboard.ejs", { user });
@@ -47,7 +38,7 @@ app.get("/register", (req, res) => {
   res.render("register.ejs", { error: "" });
 });
 
-app.post("/register", async (req, res) => {
+app.post("/register", (req, res) => {
   const { email, password, ConfirmPassword } = req.body;
 
   if (!email || !password || !ConfirmPassword) {
@@ -58,13 +49,12 @@ app.post("/register", async (req, res) => {
   }
 
   try {
-    const usersCollection = await getUsersCollection();
-    const exists = await usersCollection.findOne({ email });
+    const exists = findUser(email);
     if (exists) {
       return res.render("register.ejs", { error: "Account already exists. Please login." });
     }
 
-    await usersCollection.insertOne({ email, password, diet: "", allergies: "" });
+    createUser({ email, password, diet: "", allergies: "" });
     return res.redirect("/login");
   } catch (error) {
     console.error('Registration error:', error);
@@ -72,7 +62,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.get("/dashboard", (req, res) => 
+app.get("/dashboard", (req, res) =>
     res.render("pages/dashboard", {
     user: {
       email: "demo@test.com",
@@ -82,16 +72,11 @@ app.get("/dashboard", (req, res) =>
   })
 );
 
-app.post("/update-profile", async (req, res) => {
+app.post("/update-profile", (req, res) => {
   const { email, diet, allergies } = req.body;
 
   try {
-    const usersCollection = await getUsersCollection();
-    const result = await usersCollection.findOneAndUpdate(
-      { email },
-      { $set: { diet: diet || "", allergies: allergies || "" } },
-      { returnDocument: 'after' }
-    );
+    const result = updateUser(email, { diet: diet || "", allergies: allergies || "" });
 
     if (!result) {
       return res.status(404).send("User not found");
