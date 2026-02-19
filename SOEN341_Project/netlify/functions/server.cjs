@@ -1,11 +1,18 @@
-const serverlessExpress = require("@vendia/serverless-express");
+const serverless = require("serverless-http");
 const express = require("express");
 const path = require("path");
 const { getUsersCollection } = require("../../db.cjs");
 
 const app = express();
 
-// Use express built-in parsers
+// Critical: Use raw body parser first, then URL-encoded parser
+app.use(express.raw({ type: 'application/x-www-form-urlencoded' }));
+app.use((req, res, next) => {
+  if (Buffer.isBuffer(req.body)) {
+    req.body = req.body.toString('utf-8');
+  }
+  next();
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -98,4 +105,4 @@ app.post("/update-profile", async (req, res) => {
 });
 
 
-module.exports.handler = serverlessExpress({ app });
+module.exports.handler = serverless(app);
