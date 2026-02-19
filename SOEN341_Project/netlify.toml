@@ -9,7 +9,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["views/**", "partials/**", "db.cjs"]
+  included_files = ["views/**", "partials/**", "storage.cjs", "users.json"]
 
 [functions.server]
-  external_node_modules = ["express", "ejs", "mongodb", "dotenv", "serverless-http"]
+  external_node_modules = ["express", "ejs", "serverless-http"]
