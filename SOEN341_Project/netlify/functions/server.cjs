@@ -1,12 +1,13 @@
 const serverless = require("serverless-http");
 const express = require("express");
-const bodyParser = require("body-parser");
 const path = require("path");
 const { getUsersCollection } = require("../../db.cjs");
 
 const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+
+// Use express built-in parsers instead of body-parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "../../views"));
 app.use(express.static(path.join(__dirname, "../../public")));
@@ -97,14 +98,4 @@ app.post("/update-profile", async (req, res) => {
 });
 
 
-const handler = serverless(app);
-
-module.exports.handler = async (event, context) => {
-  // Parse body if it's base64 encoded or a string
-  if (event.body && typeof event.body === 'string' && !event.isBase64Encoded) {
-    // Body is already a string, let serverless-http handle it
-    return handler(event, context);
-  }
-  
-  return handler(event, context);
-};
+module.exports.handler = serverless(app);
