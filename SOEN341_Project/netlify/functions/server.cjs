@@ -98,4 +98,17 @@ app.post("/update-profile", async (req, res) => {
 });
 
 
-module.exports.handler = serverless(app);
+const handler = serverless(app);
+
+module.exports.handler = async (event, context) => {
+  // Netlify Functions sometimes passes body as Buffer or base64
+  // We need to ensure it's properly formatted before Express processes it
+  if (event.body) {
+    if (event.isBase64Encoded) {
+      event.body = Buffer.from(event.body, 'base64').toString('utf-8');
+      event.isBase64Encoded = false;
+    }
+  }
+  
+  return handler(event, context);
+};
