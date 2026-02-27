@@ -208,4 +208,6 @@ app.post("/recipes/:id/delete", (req, res) => {
   res.redirect("/recipes");
 });
 
-module.exports.handler = serverless(app);
+module.exports.handler = serverless(app, {
+  binary: ["application/x-www-form-urlencoded"]
+});
