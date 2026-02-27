@@ -16,15 +16,6 @@ test('User can login and update dietary preferences', async ({ page }) => {
   // Verify redirected to login after register
   await expect(page).toHaveURL('http://localhost:3000/login');
 
-  // Go to home page
-  await page.goto('http://localhost:3000/');
-
-  // Click "Get Started" button
-  await page.click('a[href="/register"]:has-text("Get started")');
-
-  // Click "I already have an account"
-  await page.click('a[href="/login"]');
-
   // Fill in login form
   await page.fill('input[name="email"]', testEmail);
   await page.fill('input[name="password"]', testPassword);
@@ -32,7 +23,7 @@ test('User can login and update dietary preferences', async ({ page }) => {
   // Submit login form
   await page.click('button[type="submit"]');
 
-  // Verify we are on the dashboard (check for dashboard content)
+  // Verify we are on the dashboard
   await expect(page.locator('text=Welcome back')).toBeVisible();
 
   // Select a diet from the dropdown
@@ -44,7 +35,7 @@ test('User can login and update dietary preferences', async ({ page }) => {
   // Click "Update Preferences"
   await page.click('button[type="submit"]');
 
-  // Verify preferences were saved
-  await expect(page.locator('text=Vegan')).toBeVisible();
-  await expect(page.locator('text=Peanuts, Shellfish, Dairy')).toBeVisible();
+  // Verify preferences were saved (check the muted paragraph specifically)
+  await expect(page.locator('p.muted:has-text("Vegan")')).toBeVisible();
+  await expect(page.locator('p.muted:has-text("Peanuts, Shellfish, Dairy")')).toBeVisible();
 });
