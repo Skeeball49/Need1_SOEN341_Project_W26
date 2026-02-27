@@ -2,10 +2,12 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Recipes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recipes — Recipex</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
+  <div class="bg-blur"></div>
   <%- include("../partials/navbar") %>
 
   <main class="container section">
@@ -14,7 +16,7 @@
       <a class="btn" href="/recipes/new">+ New Recipe</a>
     </div>
 
-    <form method="GET" action="/recipes" class="card" style="margin-top:16px;padding:16px;">
+    <form method="GET" action="/recipes" class="split-card" style="margin-top:16px;">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;">
         <input name="q" placeholder="Search title or ingredient" value="<%= query.q %>"/>
         <input name="maxTime" type="number" placeholder="Max time (min)" value="<%= query.maxTime %>"/>
@@ -28,8 +30,8 @@
         <input name="tag" placeholder="Tag (e.g. vegan)" value="<%= query.tag %>"/>
       </div>
       <div style="margin-top:12px;display:flex;gap:10px;">
-        <button class="btn" type="submit">Apply</button>
-        <a class="btn" href="/recipes" style="background:#eee;color:#111;">Reset</a>
+        <button class="btn" type="submit">Apply Filters</button>
+        <a class="btn" href="/recipes" style="background:rgba(255,255,255,0.06);">Reset</a>
       </div>
     </form>
 
