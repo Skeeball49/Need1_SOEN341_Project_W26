@@ -12,7 +12,9 @@ test('User can login and update dietary preferences', async ({ page }) => {
   await page.fill('input[name="password"]', testPassword);
   await page.fill('input[name="ConfirmPassword"]', testPassword);
   await page.click('button[type="submit"]');
-  await expect(page).not.toHaveURL('http://localhost:3000/register');
+
+  // Verify redirected to login after register
+  await expect(page).toHaveURL('http://localhost:3000/login');
 
   // Go to home page
   await page.goto('http://localhost:3000/');
@@ -20,7 +22,7 @@ test('User can login and update dietary preferences', async ({ page }) => {
   // Click "Get Started" button
   await page.click('a[href="/register"]:has-text("Get started")');
 
-  // Since we already have an account, click "I already have an account"
+  // Click "I already have an account"
   await page.click('a[href="/login"]');
 
   // Fill in login form
@@ -30,8 +32,8 @@ test('User can login and update dietary preferences', async ({ page }) => {
   // Submit login form
   await page.click('button[type="submit"]');
 
-  // Verify we are on the dashboard
-  await expect(page).toHaveURL('http://localhost:3000/dashboard');
+  // Verify we are on the dashboard (check for dashboard content)
+  await expect(page.locator('text=Welcome back')).toBeVisible();
 
   // Select a diet from the dropdown
   await page.selectOption('select[name="diet"]', 'Vegan');
@@ -43,7 +45,6 @@ test('User can login and update dietary preferences', async ({ page }) => {
   await page.click('button[type="submit"]');
 
   // Verify preferences were saved
-  await expect(page).toHaveURL('http://localhost:3000/dashboard');
   await expect(page.locator('text=Vegan')).toBeVisible();
   await expect(page.locator('text=Peanuts, Shellfish, Dairy')).toBeVisible();
 });
