@@ -43,4 +43,4 @@ Member 5 – Name Obi (ID: 40235035) – Role: Testing & User Stories
 
 This prototype demonstrates basic user registration, login, and profile display using a Node.js, Express, and EJS-based frontend.
 
-
+<!-- Pipeline test: 2026-02-27 -->
