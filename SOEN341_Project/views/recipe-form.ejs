@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title><%= recipe ? "Edit" : "New" %> Recipe</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="container section">
+    <h1><%= recipe ? "Edit" : "Create" %> Recipe</h1>
+
+    <% if (error) { %>
+      <div style="background:#ff4d4d22;border:1px solid #ff4d4d;padding:12px;border-radius:10px;margin:12px 0;">
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form method="POST" action="<%= recipe ? ('/recipes/' + recipe.id) : '/recipes' %>" class="card" style="padding:16px;">
+      <label>Title
+        <input name="title" required value="<%= recipe ? recipe.title : '' %>"/>
+      </label>
+
+      <label>Ingredients (one per line)
+        <textarea name="ingredients" rows="6" required><%= recipe ? recipe.ingredients.join('\n') : '' %></textarea>
+      </label>
+
+      <label>Prep Time (minutes)
+        <input name="prepTime" type="number" value="<%= recipe ? recipe.prepTime : 0 %>"/>
+      </label>
+
+      <label>Steps (one per line)
+        <textarea name="steps" rows="7" required><%= recipe ? recipe.steps.join('\n') : '' %></textarea>
+      </label>
+
+      <label>Estimated Cost ($)
+        <input name="cost" type="number" value="<%= recipe ? recipe.cost : 0 %>"/>
+      </label>
+
+      <label>Difficulty
+        <select name="difficulty">
+          <% const d = recipe ? recipe.difficulty : "Easy"; %>
+          <option value="Easy" <%= d==="Easy"?"selected":"" %>>Easy</option>
+          <option value="Medium" <%= d==="Medium"?"selected":"" %>>Medium</option>
+          <option value="Hard" <%= d==="Hard"?"selected":"" %>>Hard</option>
+        </select>
+      </label>
+
+      <label>Dietary Tags (comma-separated)
+        <input name="tags" value="<%= recipe && recipe.tags ? recipe.tags.join(', ') : '' %>"/>
+      </label>
+
+      <div style="margin-top:12px;display:flex;gap:10px;">
+        <button class="btn" type="submit"><%= recipe ? "Save Changes" : "Create Recipe" %></button>
+        <a class="btn" href="/recipes" style="background:#eee;color:#111;">Cancel</a>
+      </div>
+    </form>
+  </main>
+</body>
+</html>
