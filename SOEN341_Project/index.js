@@ -79,6 +79,7 @@ app.post("/update-profile", async (req, res) => {
   return res.render("dashboard.ejs", { user });
 });
 
+// RM-5 Search and filter recipes
 app.get("/recipes", async (req, res) => {
   const { q = "", maxTime = "", difficulty = "", maxCost = "", tag = "" } = req.query;
 
