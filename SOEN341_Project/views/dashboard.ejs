@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="container">
+    <section class="section">
+      <h1>Welcome back <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle;">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg></h1>
+      <p class="muted">Here's your profile overview.</p>
+
+      <div class="card-grid">
+
+        <div class="feature-card">
+          <h3>Email</h3>
+          <p><%= user.email %></p>
+        </div>
+
+        <div class="feature-card">
+          <h3>Diet Preference</h3>
+          <p><%= user.diet || 'Not set' %></p>
+        </div>
+
+        <div class="feature-card">
+          <h3>Allergies</h3>
+          <p><%= user.allergies || 'Not set' %></p>
+        </div>
+        <div class="feature-card">
+           <h3>My Recipes</h3>
+              <p>Manage your personal recipes and meal ideas.</p>
+           <a class="btn" href="/recipes" style="margin-top:10px;">Open Recipes</a>
+        </div>
+      </div>
+
+      <div style="margin-top:30px">
+        <h2>Update Your Preferences</h2>
+        <form action="/update-profile" method="POST" style="max-width: 500px;">
+          <input type="hidden" name="email" value="<%= user.email %>">
+          
+          <div style="margin-bottom: 15px;">
+            <label for="diet" style="display: block; margin-bottom: 5px; font-weight: 500;">Dietary Preference:</label>
+            <select name="diet" id="diet" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              <option value="">Select a diet preference</option>
+              <option value="Vegetarian" <%= user.diet === 'Vegetarian' ? 'selected' : '' %>>Vegetarian</option>
+              <option value="Vegan" <%= user.diet === 'Vegan' ? 'selected' : '' %>>Vegan</option>
+              <option value="Pescatarian" <%= user.diet === 'Pescatarian' ? 'selected' : '' %>>Pescatarian</option>
+              <option value="Keto" <%= user.diet === 'Keto' ? 'selected' : '' %>>Keto</option>
+              <option value="Paleo" <%= user.diet === 'Paleo' ? 'selected' : '' %>>Paleo</option>
+              <option value="Gluten-Free" <%= user.diet === 'Gluten-Free' ? 'selected' : '' %>>Gluten-Free</option>
+              <option value="Dairy-Free" <%= user.diet === 'Dairy-Free' ? 'selected' : '' %>>Dairy-Free</option>
+              <option value="Low-Carb" <%= user.diet === 'Low-Carb' ? 'selected' : '' %>>Low-Carb</option>
+              <option value="High-Protein" <%= user.diet === 'High-Protein' ? 'selected' : '' %>>High-Protein</option>
+              <option value="No Preference" <%= user.diet === 'No Preference' ? 'selected' : '' %>>No Preference</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <label for="allergies" style="display: block; margin-bottom: 5px; font-weight: 500;">Allergies:</label>
+            <input 
+              type="text" 
+              name="allergies" 
+              id="allergies" 
+              value="<%= user.allergies %>" 
+              placeholder="e.g., Peanuts, Shellfish, Dairy"
+              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+            >
+            <small style="color: #666; display: block; margin-top: 5px;">Separate multiple allergies with commas</small>
+          </div>
+
+          <button type="submit" class="btn" style="margin-right: 10px;">Update Preferences</button>
+        </form>
+      </div>
+
+      <div style="margin-top:30px">
+        <a class="btn" href="/">Back to home</a>
+      </div>
+    </section>
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
