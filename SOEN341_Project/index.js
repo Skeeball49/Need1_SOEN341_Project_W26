@@ -169,6 +169,7 @@ app.post("/recipes/:id", async (req, res) => {
   res.redirect("/recipes");
 });
 
+// RM-4 Delete recipes
 app.post("/recipes/:id/delete", async (req, res) => {
   await supabase.from("recipes").delete().eq("id", req.params.id);
   res.redirect("/recipes");
