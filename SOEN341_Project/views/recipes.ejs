@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Recipes</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="container section">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+      <h1>Recipes</h1>
+      <a class="btn" href="/recipes/new">+ New Recipe</a>
+    </div>
+
+    <form method="GET" action="/recipes" class="card" style="margin-top:16px;padding:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;">
+        <input name="q" placeholder="Search title or ingredient" value="<%= query.q %>"/>
+        <input name="maxTime" type="number" placeholder="Max time (min)" value="<%= query.maxTime %>"/>
+        <select name="difficulty">
+          <option value="">Difficulty</option>
+          <option value="Easy" <%= query.difficulty==="Easy"?"selected":"" %>>Easy</option>
+          <option value="Medium" <%= query.difficulty==="Medium"?"selected":"" %>>Medium</option>
+          <option value="Hard" <%= query.difficulty==="Hard"?"selected":"" %>>Hard</option>
+        </select>
+        <input name="maxCost" type="number" placeholder="Max cost ($)" value="<%= query.maxCost %>"/>
+        <input name="tag" placeholder="Tag (e.g. vegan)" value="<%= query.tag %>"/>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;">
+        <button class="btn" type="submit">Apply</button>
+        <a class="btn" href="/recipes" style="background:#eee;color:#111;">Reset</a>
+      </div>
+    </form>
+
+    <% if (recipes.length === 0 && !query.q) { %>
+      <p class="muted" style="margin-top:16px;">No recipes yet. Create your first one!</p>
+    <% } %>
+
+    <% if (recipes.length === 0 && query.q) { %>
+      <div style="margin-top:16px;padding:16px;background:#ff4d4d22;border:1px solid #ff4d4d;border-radius:10px;">
+        <strong>No recipe found</strong> matching "<%= query.q %>"
+      </div>
+    <% } %>
+
+    <div class="card-grid" style="margin-top:16px;">
+      <% recipes.forEach(r => { %>
+        <div class="feature-card">
+          <h3><%= r.title %></h3>
+          <p class="muted"><%= r.prepTime %> min • <%= r.difficulty %> • $<%= r.cost %></p>
+
+          <% if (r.tags && r.tags.length) { %>
+            <p class="muted">Tags: <%= r.tags.join(", ") %></p>
+          <% } %>
+
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <a class="btn" href="/recipes/<%= r.id %>/edit">Edit</a>
+            <form method="POST" action="/recipes/<%= r.id %>/delete" style="display:inline;">
+              <button class="btn" type="submit" style="background:#ff4d4d;">Delete</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </main>
+</body>
+</html>
