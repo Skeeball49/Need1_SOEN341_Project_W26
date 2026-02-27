@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Recipex</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
+  <div class="bg-blur"></div>
   <%- include("../partials/navbar") %>
 
   <main class="container">
@@ -18,36 +20,35 @@
       <p class="muted">Here's your profile overview.</p>
 
       <div class="card-grid">
-
         <div class="feature-card">
           <h3>Email</h3>
-          <p><%= user.email %></p>
+          <p class="muted"><%= user.email %></p>
         </div>
 
         <div class="feature-card">
           <h3>Diet Preference</h3>
-          <p><%= user.diet || 'Not set' %></p>
+          <p class="muted"><%= user.diet || 'Not set' %></p>
         </div>
 
         <div class="feature-card">
           <h3>Allergies</h3>
-          <p><%= user.allergies || 'Not set' %></p>
+          <p class="muted"><%= user.allergies || 'Not set' %></p>
         </div>
         <div class="feature-card">
            <h3>My Recipes</h3>
-              <p>Manage your personal recipes and meal ideas.</p>
+           <p class="muted">Manage your personal recipes and meal ideas.</p>
            <a class="btn" href="/recipes" style="margin-top:10px;">Open Recipes</a>
         </div>
       </div>
 
-      <div style="margin-top:30px">
+      <div class="split-card" style="margin-top:24px;">
         <h2>Update Your Preferences</h2>
-        <form action="/update-profile" method="POST" style="max-width: 500px;">
+        <form action="/update-profile" method="POST" class="form">
           <input type="hidden" name="email" value="<%= user.email %>">
           
-          <div style="margin-bottom: 15px;">
-            <label for="diet" style="display: block; margin-bottom: 5px; font-weight: 500;">Dietary Preference:</label>
-            <select name="diet" id="diet" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          <label>
+            Dietary Preference
+            <select name="diet" id="diet">
               <option value="">Select a diet preference</option>
               <option value="Vegetarian" <%= user.diet === 'Vegetarian' ? 'selected' : '' %>>Vegetarian</option>
               <option value="Vegan" <%= user.diet === 'Vegan' ? 'selected' : '' %>>Vegan</option>
@@ -60,27 +61,25 @@
               <option value="High-Protein" <%= user.diet === 'High-Protein' ? 'selected' : '' %>>High-Protein</option>
               <option value="No Preference" <%= user.diet === 'No Preference' ? 'selected' : '' %>>No Preference</option>
             </select>
-          </div>
+          </label>
 
-          <div style="margin-bottom: 15px;">
-            <label for="allergies" style="display: block; margin-bottom: 5px; font-weight: 500;">Allergies:</label>
+          <label>
+            Allergies
             <input 
               type="text" 
               name="allergies" 
               id="allergies" 
               value="<%= user.allergies %>" 
               placeholder="e.g., Peanuts, Shellfish, Dairy"
-              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
             >
-            <small style="color: #666; display: block; margin-top: 5px;">Separate multiple allergies with commas</small>
+            <small class="muted" style="display: block; margin-top: 5px;">Separate multiple allergies with commas</small>
+          </label>
+
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button type="submit" class="btn">Update Preferences</button>
+            <a class="btn" href="/" style="background:rgba(255,255,255,0.06);">Back to home</a>
           </div>
-
-          <button type="submit" class="btn" style="margin-right: 10px;">Update Preferences</button>
         </form>
-      </div>
-
-      <div style="margin-top:30px">
-        <a class="btn" href="/">Back to home</a>
       </div>
     </section>
   </main>

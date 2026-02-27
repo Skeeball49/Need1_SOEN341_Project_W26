@@ -138,6 +138,7 @@ app.post("/recipes", async (req, res) => {
   res.redirect("/recipes");
 });
 
+// RM-3 Edit recipes
 app.get("/recipes/:id/edit", async (req, res) => {
   const { data: recipe } = await supabase
     .from("recipes")
