@@ -1,0 +1,33 @@
+name: Continuous Integration - Autonomous Testing
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: SOEN341_Project
+        run: npm install
+
+      - name: Start server
+        working-directory: SOEN341_Project
+        run: npm start &
+
+      - name: Wait for server to be ready
+        run: sleep 5
+
+     #add steps later, for now its just build local
