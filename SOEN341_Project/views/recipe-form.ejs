@@ -2,28 +2,55 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title><%= recipe ? "Edit" : "New" %> Recipe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= recipe ? "Edit" : "New" %> Recipe — Recipex</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
+  <div class="bg-blur"></div>
   <%- include("../partials/navbar") %>
 
   <main class="container section">
     <h1><%= recipe ? "Edit" : "Create" %> Recipe</h1>
 
     <% if (error) { %>
-      <div style="background:#ff4d4d22;border:1px solid #ff4d4d;padding:12px;border-radius:10px;margin:12px 0;">
+      <div style="background:#ff4d4d22;border:1px solid #ff4d4d;padding:12px;border-radius:var(--radius);margin:12px 0;">
         <%= error %>
       </div>
     <% } %>
 
-    <form method="POST" action="<%= recipe ? ('/recipes/' + recipe.id) : '/recipes' %>" class="card" style="padding:16px;">
+    <form method="POST" action="<%= recipe ? ('/recipes/' + recipe.id) : '/recipes' %>" class="split-card form">
       <label>Title
         <input name="title" required value="<%= recipe ? recipe.title : '' %>"/>
       </label>
 
-      <label>Ingredients (one per line)
-        <textarea name="ingredients" rows="6" required><%= recipe ? recipe.ingredients.join('\n') : '' %></textarea>
+      <label>Ingredients
+        <div style="margin-top:8px;margin-bottom:16px;">
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <button type="button" class="category-btn" data-category="vegetables">🥬 Vegetables</button>
+            <button type="button" class="category-btn" data-category="proteins">🍗 Proteins</button>
+            <button type="button" class="category-btn" data-category="grains">🌾 Grains</button>
+            <button type="button" class="category-btn" data-category="dairy">🧀 Dairy</button>
+            <button type="button" class="category-btn" data-category="spices">🌶️ Spices</button>
+            <button type="button" class="category-btn" data-category="fruits">🍎 Fruits</button>
+            <button type="button" class="category-btn" data-category="other">🍴 Other</button>
+          </div>
+
+          <div id="ingredient-picker" style="display:none;padding:12px;background:#f5f5f5;border-radius:8px;margin-bottom:12px;max-height:200px;overflow-y:auto;">
+            <div class="ingredient-grid"></div>
+          </div>
+
+          <div id="selected-ingredients" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:40px;padding:8px;background:#f9f9f9;border-radius:8px;border:2px dashed #ddd;">
+            <span style="color:#999;font-size:14px;" id="empty-msg">Click categories above to add ingredients</span>
+          </div>
+
+          <textarea name="ingredients" id="ingredients-input" rows="3" style="display:none;" required><%= recipe ? recipe.ingredients.join('\n') : '' %></textarea>
+          
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="custom-ingredient" placeholder="Or type custom ingredient..." style="flex:1;"/>
+            <button type="button" class="btn" onclick="addCustomIngredient()" style="background:#4CAF50;">+ Add</button>
+          </div>
+        </div>
       </label>
 
       <label>Prep Time (minutes)
@@ -53,9 +80,190 @@
 
       <div style="margin-top:12px;display:flex;gap:10px;">
         <button class="btn" type="submit"><%= recipe ? "Save Changes" : "Create Recipe" %></button>
-        <a class="btn" href="/recipes" style="background:#eee;color:#111;">Cancel</a>
+        <a class="btn" href="/recipes" style="background:rgba(255,255,255,0.06);">Cancel</a>
       </div>
     </form>
   </main>
+
+  <script>
+    const ingredientDatabase = {
+      vegetables: ['Tomato', 'Onion', 'Garlic', 'Bell Pepper', 'Carrot', 'Broccoli', 'Spinach', 'Lettuce', 'Cucumber', 'Potato', 'Mushroom', 'Zucchini', 'Eggplant', 'Celery', 'Cabbage', 'Kale', 'Cauliflower', 'Green Beans', 'Peas', 'Corn'],
+      proteins: ['Chicken Breast', 'Ground Beef', 'Pork Chops', 'Salmon', 'Tuna', 'Shrimp', 'Eggs', 'Tofu', 'Bacon', 'Turkey', 'Lamb', 'Sausage', 'Chickpeas', 'Black Beans', 'Lentils', 'Almonds', 'Peanut Butter'],
+      grains: ['Rice', 'Pasta', 'Bread', 'Quinoa', 'Oats', 'Couscous', 'Flour', 'Tortillas', 'Noodles', 'Barley', 'Bulgur', 'Cornmeal', 'Breadcrumbs'],
+      dairy: ['Milk', 'Butter', 'Cheese', 'Yogurt', 'Cream', 'Sour Cream', 'Cream Cheese', 'Mozzarella', 'Parmesan', 'Cheddar', 'Feta', 'Heavy Cream'],
+      spices: ['Salt', 'Black Pepper', 'Garlic Powder', 'Onion Powder', 'Paprika', 'Cumin', 'Oregano', 'Basil', 'Thyme', 'Rosemary', 'Chili Powder', 'Cinnamon', 'Curry Powder', 'Ginger', 'Turmeric', 'Bay Leaves', 'Red Pepper Flakes', 'Cayenne'],
+      fruits: ['Apple', 'Banana', 'Orange', 'Lemon', 'Lime', 'Strawberry', 'Blueberry', 'Avocado', 'Mango', 'Pineapple', 'Grapes', 'Watermelon', 'Peach', 'Pear', 'Cherry', 'Coconut'],
+      other: ['Olive Oil', 'Vegetable Oil', 'Soy Sauce', 'Vinegar', 'Honey', 'Sugar', 'Brown Sugar', 'Ketchup', 'Mustard', 'Mayonnaise', 'Hot Sauce', 'Worcestershire Sauce', 'Chicken Broth', 'Beef Broth', 'Tomato Sauce', 'Tomato Paste', 'Coconut Milk', 'Wine', 'Beer']
+    };
+
+    let selectedIngredients = new Set();
+
+    // Load existing ingredients if editing
+    <% if (recipe && recipe.ingredients) { %>
+      <% recipe.ingredients.forEach(ing => { %>
+        selectedIngredients.add('<%= ing %>');
+      <% }); %>
+      updateSelectedDisplay();
+    <% } %>
+
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const category = this.dataset.category;
+        showIngredients(category);
+        
+        document.querySelectorAll('.category-btn').forEach(b => b.style.background = '#007bff');
+        this.style.background = '#0056b3';
+      });
+    });
+
+    function showIngredients(category) {
+      const picker = document.getElementById('ingredient-picker');
+      const grid = picker.querySelector('.ingredient-grid');
+      
+      grid.innerHTML = '';
+      ingredientDatabase[category].forEach(ingredient => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'ingredient-chip';
+        chip.textContent = ingredient;
+        chip.onclick = () => addIngredient(ingredient);
+        
+        if (selectedIngredients.has(ingredient)) {
+          chip.style.background = '#4CAF50';
+          chip.style.color = 'white';
+        }
+        
+        grid.appendChild(chip);
+      });
+      
+      picker.style.display = 'block';
+    }
+
+    function addIngredient(ingredient) {
+      if (selectedIngredients.has(ingredient)) {
+        selectedIngredients.delete(ingredient);
+      } else {
+        selectedIngredients.add(ingredient);
+      }
+      updateSelectedDisplay();
+      
+      // Update the current category view
+      const activeCategory = document.querySelector('.category-btn[style*="0056b3"]');
+      if (activeCategory) {
+        showIngredients(activeCategory.dataset.category);
+      }
+    }
+
+    function addCustomIngredient() {
+      const input = document.getElementById('custom-ingredient');
+      const ingredient = input.value.trim();
+      
+      if (ingredient) {
+        selectedIngredients.add(ingredient);
+        updateSelectedDisplay();
+        input.value = '';
+      }
+    }
+
+    function removeIngredient(ingredient) {
+      selectedIngredients.delete(ingredient);
+      updateSelectedDisplay();
+      
+      // Update the current category view if open
+      const activeCategory = document.querySelector('.category-btn[style*="0056b3"]');
+      if (activeCategory) {
+        showIngredients(activeCategory.dataset.category);
+      }
+    }
+
+    function updateSelectedDisplay() {
+      const container = document.getElementById('selected-ingredients');
+      const emptyMsg = document.getElementById('empty-msg');
+      const textarea = document.getElementById('ingredients-input');
+      
+      container.innerHTML = '';
+      
+      if (selectedIngredients.size === 0) {
+        emptyMsg.style.display = 'block';
+        container.appendChild(emptyMsg);
+      } else {
+        selectedIngredients.forEach(ingredient => {
+          const tag = document.createElement('span');
+          tag.className = 'selected-ingredient-tag';
+          tag.innerHTML = `${ingredient} <span onclick="removeIngredient('${ingredient.replace(/'/g, "\\'")}')">×</span>`;
+          container.appendChild(tag);
+        });
+      }
+      
+      // Update hidden textarea
+      textarea.value = Array.from(selectedIngredients).join('\n');
+    }
+
+    // Allow Enter key in custom ingredient input
+    document.getElementById('custom-ingredient').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addCustomIngredient();
+      }
+    });
+  </script>
+
+  <style>
+    .category-btn {
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .category-btn:hover {
+      background: #0056b3;
+      transform: translateY(-2px);
+    }
+
+    .ingredient-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+    }
+
+    .ingredient-chip {
+      padding: 8px 12px;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .ingredient-chip:hover {
+      border-color: #4CAF50;
+      transform: scale(1.05);
+    }
+
+    .selected-ingredient-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #007bff;
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+    .selected-ingredient-tag span {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .selected-ingredient-tag span:hover {
+      color: #ff4d4d;
+    }
+  </style>
 </body>
 </html>
