@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="bg-blur"></div>
+  <%- include("../partials/navbar") %>
+
+  <main class="container">
+    <section class="auth">
+      <div class="auth-card">
+        <div class="auth-top">
+          <h1>Create your account</h1>
+          <p class="muted">Start planning meals in minutes.</p>
+        </div>
+
+        <% if (error) { %>
+  <div style="background:#ff4d4d22;border:1px solid #ff4d4d;padding:12px;border-radius:10px;margin-bottom:15px">
+    <%= error %>
+  </div>
+<% } %>
+
+        <form class="form" method="POST" action="/register">
+          <label>
+            Email
+            <input name="email" type="email" placeholder="you@school.ca" required />
+          </label>
+
+          <label>
+            Password
+            <input name="password" type="password" minlength="6" placeholder="min 6 chars" required />
+          </label>
+
+          <label>
+            Confirm password
+            <input name="ConfirmPassword" type="password" minlength="6" placeholder="repeat password" required />
+          </label>
+
+          <button class="btn w-full btn-lg" type="submit">Register</button>
+        </form>
+
+        <div class="auth-bottom">
+          <span class="muted small">Already have an account?</span>
+          <a href="/login">Login</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>

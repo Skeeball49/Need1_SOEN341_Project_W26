@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recipex</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="bg-blur"></div>
+  <%-include("../partials/navbar") %>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-left">
+        <div class="badge">Recipex</div><!--Name of app-->
+        <h1>Plan meals faster.<br/>Eat better.</h1>
+        <p class="lead">
+          Organize recipes, build meal plans, and track groceries.
+        </p>
+
+        <div class="hero-ctas">
+          <a class="btn btn-lg" href="/register">Get started</a>
+          <a class="btn btn-ghost btn-lg" href="/login">I already have an account</a>
+        </div>
+
+        <div class="mini-stats">
+          <div class="stat">
+            <div class="stat-top">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div class="stat-title">Quick planning</div>
+            <div class="muted">Weekly grid view</div>
+          </div>
+          <div class="stat">
+            <div class="stat-top">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                <line x1="6" y1="1" x2="6" y2="4"/>
+                <line x1="10" y1="1" x2="10" y2="4"/>
+                <line x1="14" y1="1" x2="14" y2="4"/>
+              </svg>
+            </div>
+            <div class="stat-title">Diet aware</div>
+            <div class="muted">Prefs and allergies</div>
+          </div>
+          <div class="stat">
+            <div class="stat-top">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <div class="stat-title">Budget friendly</div>
+            <div class="muted">Track cost later</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="preview-card">
+          <div class="preview-head">
+            <div>
+              <div class="preview-title">This Week</div>
+            </div>
+            <span class="chip">Planner</span>
+          </div>
+
+          <div class="week-grid">
+            <div class="cell head">Mon</div><div class="cell head">Tue</div><div class="cell head">Wed</div>
+            <div class="cell head">Thu</div><div class="cell head">Fri</div><div class="cell head">Sat</div><div class="cell head">Sun</div>
+
+            <div class="cell">Oats</div><div class="cell">Egg wrap</div><div class="cell">Smoothie</div>
+            <div class="cell">Yogurt</div><div class="cell">Porridge</div><div class="cell">Toast</div><div class="cell">Pancakes</div>
+
+            <div class="cell">Chicken bowl</div><div class="cell">Pasta</div><div class="cell">Salad</div>
+            <div class="cell">Rice + tuna</div><div class="cell">Stir-fry</div><div class="cell">Wrap</div><div class="cell">Soup</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="section-head">
+        <h2>Features</h2>
+      </div>
+
+      <div class="card-grid">
+        <div class="feature-card">
+          <div class="icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h3>Login and Register</h3>
+        </div>
+        <div class="feature-card">
+          <div class="icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <h3>Profile basics</h3>
+        </div>
+        <div class="feature-card">
+          <div class="icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <h3>Weekly planner</h3>
+        </div>
+      </div>
+    </section>
+
+    <section id="how" class="section split">
+      <div class="split-card">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li><span class="num">1</span> Create an account</li>
+          <li><span class="num">2</span> Add your preferences</li>
+          <li><span class="num">3</span> Plan your week</li>
+        </ol>
+      </div>
+      <div class="split-card">
+        <h2>Why students like it</h2>
+        <ul class="bullets">
+          <li>Less time thinking “what do I eat?”</li>
+          <li>More consistent healthy meals</li>
+          <li>Easy to extend with recipes and grocery tracking</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="section-head">
+        <h2>FAQ</h2>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>Is this connected to a database?</summary>
+          <p class="muted">Yes, user data is stored in a JSON file.</p>
+        </details>
+        <details>
+          <summary>Can I create an account?</summary>
+          <p class="muted">Yes, registration and login are fully functional.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
