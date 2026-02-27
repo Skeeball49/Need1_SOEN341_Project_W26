@@ -1,8 +1,12 @@
 const serverless = require("serverless-http");
 const express = require("express");
 const path = require("path");
-const fs = require("fs");
-const { findUser, createUser, updateUser } = require("../../storage.cjs");
+const { createClient } = require("@supabase/supabase-js");
+
+const supabase = createClient(
+  process.env.SUPABASE_URL || "https://enxoxjoeqvlxqnfpmpim.supabase.co",
+  process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueG94am9lcXZseHFuZnBtcGltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTM0ODksImV4cCI6MjA4NzUyOTQ4OX0.31he6qAZCmo6z8niggBxzQXMjAPi3n8wGqxS5Z_63YM"
+);
 
 const app = express();
 
@@ -12,30 +16,32 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "../../views"));
 app.use(express.static(path.join(__dirname, "../../public")));
 
-const RECIPES_FILE = path.join(__dirname, "../../recipes.json");
+// ── User helpers (Supabase) ──
 
-// ── Recipes helpers ──
-
-function ensureRecipesFile() {
-  if (!fs.existsSync(RECIPES_FILE)) fs.writeFileSync(RECIPES_FILE, "[]", "utf-8");
+async function findUser(email) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .single();
+  if (error) return null;
+  return data;
 }
 
-function readRecipes() {
-  ensureRecipesFile();
-  try {
-    return JSON.parse(fs.readFileSync(RECIPES_FILE, "utf-8") || "[]");
-  } catch {
-    fs.writeFileSync(RECIPES_FILE, "[]", "utf-8");
-    return [];
-  }
+async function createUser(userData) {
+  const { error } = await supabase.from("users").insert(userData);
+  return !error;
 }
 
-function writeRecipes(recipes) {
-  fs.writeFileSync(RECIPES_FILE, JSON.stringify(recipes, null, 2), "utf-8");
-}
-
-function newId() {
-  return Date.now().toString();
+async function updateUser(email, updates) {
+  const { data, error } = await supabase
+    .from("users")
+    .update(updates)
+    .eq("email", email)
+    .select()
+    .single();
+  if (error) return null;
+  return data;
 }
 
 // ── Routes ──
@@ -46,11 +52,11 @@ app.get("/login", (req, res) => {
   res.render("login.ejs", { error: "" });
 });
 
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = findUser(email);
+    const user = await findUser(email);
 
     if (!user || user.password !== password) {
       return res.render("login.ejs", { error: "Invalid email or password." });
@@ -58,7 +64,7 @@ app.post("/login", (req, res) => {
 
     return res.render("dashboard.ejs", { user });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     return res.render("login.ejs", { error: "An error occurred. Please try again." });
   }
 });
@@ -67,7 +73,7 @@ app.get("/register", (req, res) => {
   res.render("register.ejs", { error: "" });
 });
 
-app.post("/register", (req, res) => {
+app.post("/register", async (req, res) => {
   const { email, password, ConfirmPassword } = req.body;
 
   if (!email || !password || !ConfirmPassword) {
@@ -78,15 +84,15 @@ app.post("/register", (req, res) => {
   }
 
   try {
-    const exists = findUser(email);
+    const exists = await findUser(email);
     if (exists) {
       return res.render("register.ejs", { error: "Account already exists. Please login." });
     }
 
-    createUser({ email, password, diet: "", allergies: "" });
+    await createUser({ email, password, diet: "", allergies: "" });
     return res.redirect("/login");
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error("Registration error:", error);
     return res.render("register.ejs", { error: "An error occurred. Please try again." });
   }
 });
@@ -101,61 +107,68 @@ app.get("/dashboard", (req, res) =>
   })
 );
 
-app.post("/update-profile", (req, res) => {
+app.post("/update-profile", async (req, res) => {
   const { email, diet, allergies } = req.body;
 
   try {
-    const result = updateUser(email, { diet: diet || "", allergies: allergies || "" });
+    const user = await updateUser(email, { diet: diet || "", allergies: allergies || "" });
 
-    if (!result) {
+    if (!user) {
       return res.status(404).send("User not found");
     }
 
-    return res.render("dashboard.ejs", { user: result });
+    return res.render("dashboard.ejs", { user });
   } catch (error) {
-    console.error('Update profile error:', error);
+    console.error("Update profile error:", error);
     return res.status(500).send("An error occurred. Please try again.");
   }
 });
 
-// ── Recipe routes ──
+// ── Recipe routes (Supabase) ──
 
-app.get("/recipes", (req, res) => {
+app.get("/recipes", async (req, res) => {
   const { q = "", maxTime = "", difficulty = "", maxCost = "", tag = "" } = req.query;
 
-  let recipes = readRecipes();
+  let query = supabase.from("recipes").select("*");
 
   if (q.trim()) {
-    const needle = q.toLowerCase();
-    recipes = recipes.filter(r =>
-      r.title.toLowerCase().includes(needle) ||
-      r.ingredients.join(" ").toLowerCase().includes(needle)
-    );
+    query = query.or(`title.ilike.%${q.trim()}%`);
   }
+  if (maxTime) query = query.lte("prepTime", Number(maxTime));
+  if (difficulty) query = query.eq("difficulty", difficulty);
+  if (maxCost) query = query.lte("cost", Number(maxCost));
 
-  if (maxTime) recipes = recipes.filter(r => Number(r.prepTime) <= Number(maxTime));
-  if (difficulty) recipes = recipes.filter(r => r.difficulty === difficulty);
-  if (maxCost) recipes = recipes.filter(r => Number(r.cost) <= Number(maxCost));
-  if (tag.trim()) recipes = recipes.filter(r => (r.tags || []).includes(tag.trim()));
+  const { data: recipes } = await query;
 
-  res.render("recipes", { recipes, query: { q, maxTime, difficulty, maxCost, tag } });
+  let filtered = recipes || [];
+  if (q.trim() && filtered.length === 0) {
+    const { data: all } = await supabase.from("recipes").select("*");
+    const needle = q.toLowerCase();
+    filtered = (all || []).filter(r =>
+      r.title.toLowerCase().includes(needle) ||
+      (r.ingredients || []).join(" ").toLowerCase().includes(needle)
+    );
+    if (maxTime) filtered = filtered.filter(r => Number(r.prepTime) <= Number(maxTime));
+    if (difficulty) filtered = filtered.filter(r => r.difficulty === difficulty);
+    if (maxCost) filtered = filtered.filter(r => Number(r.cost) <= Number(maxCost));
+  }
+  if (tag.trim()) filtered = filtered.filter(r => (r.tags || []).includes(tag.trim()));
+
+  res.render("recipes", { recipes: filtered, query: { q, maxTime, difficulty, maxCost, tag } });
 });
 
 app.get("/recipes/new", (req, res) => {
   res.render("recipe-form", { recipe: null, error: "" });
 });
 
-app.post("/recipes", (req, res) => {
+app.post("/recipes", async (req, res) => {
   const { title, ingredients, prepTime, steps, cost, difficulty, tags } = req.body;
 
   if (!title || !ingredients || !steps) {
     return res.render("recipe-form", { recipe: null, error: "Title, ingredients, and steps are required." });
   }
 
-  const recipes = readRecipes();
-
   const recipe = {
-    id: newId(),
     title: title.trim(),
     ingredients: ingredients.split("\n").map(s => s.trim()).filter(Boolean),
     prepTime: Number(prepTime || 0),
@@ -165,29 +178,27 @@ app.post("/recipes", (req, res) => {
     tags: (tags || "").split(",").map(s => s.trim()).filter(Boolean)
   };
 
-  recipes.push(recipe);
-  writeRecipes(recipes);
+  await supabase.from("recipes").insert(recipe);
 
   res.redirect("/recipes");
 });
 
-app.get("/recipes/:id/edit", (req, res) => {
-  const recipes = readRecipes();
-  const recipe = recipes.find(r => r.id === req.params.id);
+app.get("/recipes/:id/edit", async (req, res) => {
+  const { data: recipe } = await supabase
+    .from("recipes")
+    .select("*")
+    .eq("id", req.params.id)
+    .single();
+
   if (!recipe) return res.redirect("/recipes");
 
   res.render("recipe-form", { recipe, error: "" });
 });
 
-app.post("/recipes/:id", (req, res) => {
+app.post("/recipes/:id", async (req, res) => {
   const { title, ingredients, prepTime, steps, cost, difficulty, tags } = req.body;
 
-  const recipes = readRecipes();
-  const idx = recipes.findIndex(r => r.id === req.params.id);
-  if (idx === -1) return res.redirect("/recipes");
-
-  recipes[idx] = {
-    ...recipes[idx],
+  const updates = {
     title: title.trim(),
     ingredients: ingredients.split("\n").map(s => s.trim()).filter(Boolean),
     prepTime: Number(prepTime || 0),
@@ -197,14 +208,13 @@ app.post("/recipes/:id", (req, res) => {
     tags: (tags || "").split(",").map(s => s.trim()).filter(Boolean)
   };
 
-  writeRecipes(recipes);
+  await supabase.from("recipes").update(updates).eq("id", req.params.id);
+
   res.redirect("/recipes");
 });
 
-app.post("/recipes/:id/delete", (req, res) => {
-  let recipes = readRecipes();
-  recipes = recipes.filter(r => r.id !== req.params.id);
-  writeRecipes(recipes);
+app.post("/recipes/:id/delete", async (req, res) => {
+  await supabase.from("recipes").delete().eq("id", req.params.id);
   res.redirect("/recipes");
 });
 

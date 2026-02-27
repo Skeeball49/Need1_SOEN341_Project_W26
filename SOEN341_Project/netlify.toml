@@ -9,7 +9,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["views/**", "partials/**", "storage.cjs", "users.json", "recipes.json"]
+  included_files = ["views/**", "partials/**"]
 
 [functions.server]
-  external_node_modules = ["express", "ejs", "serverless-http"]
+  external_node_modules = ["express", "ejs", "serverless-http", "@supabase/supabase-js"]

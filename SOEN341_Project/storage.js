@@ -1,53 +1,29 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { supabase } from "./supabase.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+export async function findUser(email) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .single();
 
-const usersFilePath = path.join(__dirname, 'users.json');
-
-function readUsers() {
-  try {
-    if (!fs.existsSync(usersFilePath)) {
-      fs.writeFileSync(usersFilePath, JSON.stringify([], null, 2));
-      return [];
-    }
-    const data = fs.readFileSync(usersFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading users:', error);
-    return [];
-  }
+  if (error) return null;
+  return data;
 }
 
-function writeUsers(users) {
-  try {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-    return true;
-  } catch (error) {
-    console.error('Error writing users:', error);
-    return false;
-  }
+export async function createUser(userData) {
+  const { error } = await supabase.from("users").insert(userData);
+  return !error;
 }
 
-export function findUser(email) {
-  const users = readUsers();
-  return users.find(user => user.email === email);
-}
+export async function updateUser(email, updates) {
+  const { data, error } = await supabase
+    .from("users")
+    .update(updates)
+    .eq("email", email)
+    .select()
+    .single();
 
-export function createUser(userData) {
-  const users = readUsers();
-  users.push(userData);
-  return writeUsers(users);
-}
-
-export function updateUser(email, updates) {
-  const users = readUsers();
-  const index = users.findIndex(user => user.email === email);
-  if (index === -1) return null;
-
-  users[index] = { ...users[index], ...updates };
-  writeUsers(users);
-  return users[index];
+  if (error) return null;
+  return data;
 }
