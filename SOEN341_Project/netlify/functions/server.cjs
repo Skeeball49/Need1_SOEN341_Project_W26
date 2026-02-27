@@ -8,7 +8,22 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueG94am9lcXZseHFuZnBtcGltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTM0ODksImV4cCI6MjA4NzUyOTQ4OX0.31he6qAZCmo6z8niggBxzQXMjAPi3n8wGqxS5Z_63YM"
 );
 
+const querystring = require("querystring");
+
 const app = express();
+
+// Netlify passes the body as a Buffer — parse it manually
+app.use((req, res, next) => {
+  if (req.body && Buffer.isBuffer(req.body)) {
+    const contentType = req.headers["content-type"] || "";
+    if (contentType.includes("application/x-www-form-urlencoded")) {
+      req.body = querystring.parse(req.body.toString("utf-8"));
+    } else if (contentType.includes("application/json")) {
+      req.body = JSON.parse(req.body.toString("utf-8"));
+    }
+  }
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -218,6 +233,13 @@ app.post("/recipes/:id/delete", async (req, res) => {
   res.redirect("/recipes");
 });
 
-module.exports.handler = serverless(app, {
-  binary: ["application/x-www-form-urlencoded"]
-});
+const handler = serverless(app);
+
+module.exports.handler = async (event, context) => {
+  // Netlify sends form bodies as base64 — decode before passing to Express
+  if (event.isBase64Encoded && event.body) {
+    event.body = Buffer.from(event.body, "base64").toString("utf-8");
+    event.isBase64Encoded = false;
+  }
+  return handler(event, context);
+};
