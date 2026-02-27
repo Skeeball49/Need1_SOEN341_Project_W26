@@ -28,5 +28,12 @@
     "password": "1234567",
     "diet": "",
     "allergies": ""
+  },
+  {
+    "email": "test@school.ca",
+    "password": "Test1234",
+    "diet": "",
+    "allergies": ""
   }
+
 ]
