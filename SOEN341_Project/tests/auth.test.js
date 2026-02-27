@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 // Generate a unique email each test run so there's no conflict
 const testEmail = `testuser_${Date.now()}@school.ca`;
