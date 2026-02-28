@@ -1,0 +1,165 @@
+Meeting 1
+
+Date: February 21, 2026
+Time: During scheduled lab session and online follow-up
+Attendees:
+
+Ibrahim Senhaji (40316859)
+
+Sebastien Keenan (40246291)
+
+Santiago Restrepodiaz (40212913)
+
+Obi (40235035)
+
+Amir Shiri (40266795)
+
+Agenda
+
+Project initialization
+
+Role allocation
+
+UI and backend architecture planning
+
+GitHub workflow setup
+
+Discussion Summary
+
+The team reviewed the project requirements for the Recipe Management System and clarified the functional modules (RM-1 to RM-5).
+
+Responsibilities were assigned to ensure equal workload distribution and accountability.
+
+The system architecture was discussed, including:
+
+Frontend structure for recipe listing and interaction.
+
+Backend logic for CRUD operations (Create, Read, Update, Delete).
+
+Integration with Supabase for database management and authentication.
+
+A GitHub repository was configured to support version control and collaborative development.
+
+Branching strategy was discussed.
+
+Commit conventions were agreed upon.
+
+Initial UI wireframe ideas were proposed for the recipe listing and create/edit pages.
+
+Decisions Made
+
+Each member will focus primarily on their assigned module (RM-1 to RM-5).
+
+Supabase will be used as the backend database solution.
+
+All updates must be pushed through GitHub with proper commit messages.
+
+Core functionality must be prioritized before UI enhancements.
+
+Action Items
+
+Obi: Begin implementation of Create Recipe (RM-2).
+
+Santiago Restrepodiaz: Start development of Edit Recipe (RM-3).
+
+Sebastien Keenan: Implement Delete Recipe functionality (RM-4).
+
+Ibrahim Senhaji: Develop Search & Filter logic (RM-5).
+
+Amir Shiri: Begin Recipe Listing UI (RM-1).
+
+All members: Push progress updates to GitHub before next meeting.
+
+Outcome
+
+Core functionality development began.
+
+Supabase project initialized and database schema drafted.
+
+Initial recipe listing UI development started.
+
+Codebase successfully pushed to GitHub.
+
+Meeting 2
+
+Date: February 24, 2026
+Time: Lab session
+Attendees:
+
+Ibrahim Senhaji (40316859)
+
+Sebastien Keenan (40246291)
+
+Santiago Restrepodiaz (40212913)
+
+Obi (40235035)
+
+Amir Shiri (40266795)
+
+Agenda
+
+Progress review
+
+Delete feature implementation
+
+Search & filter functionality
+
+Testing progress
+
+Documentation updates
+
+Discussion Summary
+
+Each member presented progress on their assigned module.
+
+Delete Recipe (RM-4) was implemented and integrated with backend logic.
+
+Search & Filter (RM-5) functionality was demonstrated and tested with sample data.
+
+Edit Recipe (RM-3) and Create Recipe (RM-2) were connected to Supabase and verified for correct database updates.
+
+Recipe Listing UI (RM-1) was refined for better usability and layout consistency.
+
+The team discussed edge case handling (empty fields, invalid inputs, confirmation prompts for deletion).
+
+Initial system testing was conducted to verify integration between frontend and backend.
+
+Documentation updates were initiated to reflect completed features.
+
+The team discussed the next sprint's stories and their priority, risks and values.
+
+Decisions Made
+
+All RM-1 to RM-5 features are considered functionally complete.
+
+Full system testing must be finalized before submission.
+
+Documentation must clearly explain each module and integration approach.
+
+Action Items
+
+All members: Conduct individual testing of assigned modules.
+
+Ibrahim: Finalize filter optimization and edge case validation.
+
+Sebastien: Add confirmation dialog before deletion.
+
+Santiago: Improve validation checks in Edit Recipe.
+
+Obi: Ensure form validation in Create Recipe.
+
+Amir: Refine UI styling and responsiveness.
+
+All members: Update project documentation and prepare for submission.
+
+Outcome
+
+Completed RM-1 through RM-5.
+
+Initiated comprehensive system testing.
+
+Began final documentation updates.
+
+System integration verified successfully.
+
+Begin sprint 3 backlog story integrations.
