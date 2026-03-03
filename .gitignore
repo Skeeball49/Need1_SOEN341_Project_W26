@@ -1,0 +1,8 @@
+# Local Netlify folder
+.netlify
+
+node_modules/
+.env
+cookies.txt
+users.json
+recipes.json

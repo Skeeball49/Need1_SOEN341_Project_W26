@@ -1,0 +1,27 @@
+Product Backlog,,,,,,,
+Story ID,User Story,Associated tasks,Story points,Priority,Risk,Due date,Responsible
+WP-1,"As a user, I want to create a weekly meal plan so that I can organize my meals in advance",-Design weekly meal planner UI-Create meal plan class/model-Implement backend endpoint for meal plan creation,6,HIGH,HIGH - Core part of the weekly planner feature; blocks all other planner features,2/27/2026,TBD
+WP-2,"As a user, I want to view my meals in a weekly grid so that I can see my full week at a glance",-Design and implement weekly grid UI-Fetch and display assigned meals per day-Add responsive layout for grid view,5,HIGH,MEDIUM - Visual clarity affects usability; grid layout may need revision across screen sizes,2/27/2026,TBD
+WP-3,"As a user, I want to assign recipes to a specific day and meal type so that my plan is organized by breakfast, lunch, dinner, or snack",-Add meal type selector (breakfast/lunch/dinner/snack)-Add day-of-week selector-Implement assignment logic and save to backend,6,HIGH,HIGH - Core functionality of the planner; incorrect assignment breaks the whole plan structure,2/27/2026,TBD
+WP-4,"As a user, I want to edit or remove meals from my planner so that I can adjust my plan when my schedule changes",-Add edit button to each meal slot-Add remove/delete button per meal entry-Implement update and delete backend endpoints,5,HIGH,MEDIUM - Failure to update correctly could leave stale data in the planner,2/27/2026,TBD
+WP-5,"As a user, I want the planner to prevent me from assigning the same recipe twice in the same week so that my meal plan stays varied",-Implement duplicate detection logic on assignment-Display warning message on duplicate attempt-Block submission if duplicate detected,4,MEDIUM,LOW - Edge case feature; can be revisited if core planner features take priority,2/27/2026,TBD
+RM-5,"As an user, I want to be able to find a recipe inside a long list","-Add search bar to UI
+-Implement search function
+",4,HIGH,"MEDIUM - As the website is still in its beginnings, looking through a small list of recipes makes search less needed immediately.",2/27/2026,Ibrahim 
+RM-6,"As an user, I want to look for specific aspects of a recipe to choose one 1","-Add UI filters to search
+-Implement filter functions for searching
+",,MEDIUM,"LOW - As long as the search feature works, filtering can be revisited",2/27/2026,Ibrahim
+UM-1,"As a new user, I can register an account and log in securely so I can access the platform.","-Design registration UI (email, password)
+-Create login form UI with proper form validation
+ -Implement password validation rules
+- Create backend endpoint for user registration
+ -Add error handling (invalid login, duplicate account, weak password)
+",8,HIGH,HIGH - Core entry point; failure blocks all other features. Security vulnerabilities if passwords not properly encrypted.,2/6/2026,"Ibrahim Senhaji,Santiago Restrepodiaz"
+UM-2,"As a user, I can access the dashboard where I can manage my profile with dietary preferences and allergies so recommendations and planning reflect my needs. (Not Functional yet only frontend)","- Design form for dietary preferences (front end only)
+ -Design form for allergy information (front end only)
+ -Create function to retrieve and display user profile information",5,HIGH,MEDIUM - Incorrect allergy data affects personalization and user trust; could pose health risks.,2/6/2026,"Sebastien Keenan,Santiego Restrepodiaz"
+UM-3,"As a user, I have a user-friendly interface with navigation to key features.","-Sketch wireframe or prototype of homepage layout
+ -Create home page with basic initial design including headers and navigation menus
+-Add navigation buttons to dashboard
+- Implement responsive design for mobile and desktop
+-Create UI for profile management page",4,MEDIUM,LOW - Can be easily revised and adjusted later based on user feedback.,2/6/2026,"Amir Shiri, Obi"
