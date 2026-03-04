@@ -67,3 +67,89 @@ app.post("/register", async (req, res) => {
   return res.redirect("/login");
 });
 
+// Onboarding — collect diet/allergy prefs after first login
+app.get("/onboarding", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.redirect("/login");
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+  res.render("onboarding", { user });
+});
+
+app.post("/onboarding", async (req, res) => {
+  const { email, diet, allergies } = req.body;
+  await updateUser(email, {
+    diet: diet || "No Preference",
+    allergies: allergies || ""
+  });
+  res.redirect(`/dashboard?email=${encodeURIComponent(email)}`);
+});
+
+app.get("/dashboard", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.redirect("/login");
+
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+
+  const weekStart = getWeekStart();
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const todayName = dayNames[new Date().getDay()];
+
+  // Fetch today's planned meals
+  const { data: todayEntries } = await supabase
+    .from("meal_plans")
+    .select("*")
+    .eq("user_email", email)
+    .eq("week_start", weekStart)
+    .eq("day", todayName);
+
+  const todayMeals = { Breakfast: [], Lunch: [], Dinner: [], Snack: [] };
+  if (todayEntries && todayEntries.length > 0) {
+    const ids = [...new Set(todayEntries.map(e => e.recipe_id))];
+    const { data: recipes } = await supabase
+      .from("recipes")
+      .select("id, title, calories, prepTime, category")
+      .in("id", ids);
+    const recipeMap = {};
+    for (const r of recipes || []) recipeMap[r.id] = r;
+    for (const entry of todayEntries) {
+      const mt = entry.meal_type;
+      if (todayMeals[mt]) {
+        todayMeals[mt].push({ ...entry, recipe: recipeMap[entry.recipe_id] || null });
+      }
+    }
+  }
+
+  const todayCalories = Object.values(todayMeals)
+    .flat()
+    .reduce((sum, m) => sum + Number(m.recipe?.calories || 0), 0);
+
+  let { data: goals } = await supabase
+    .from("user_goals")
+    .select("*")
+    .eq("user_email", email)
+    .single();
+  if (!goals) goals = { daily_calories: 2000, daily_protein: 50, daily_carbs: 250, daily_fat: 70, weekly_budget: 100 };
+
+  const calorieRingPct = goals.daily_calories > 0
+    ? Math.min(100, Math.round((todayCalories / goals.daily_calories) * 100))
+    : 0;
+  const ringCircumference = 314;
+  const ringOffset = Math.round(ringCircumference - (calorieRingPct / 100) * ringCircumference);
+
+  res.render("dashboard", { user, todayMeals, todayName, todayCalories, goals, calorieRingPct, ringOffset });
+});
+
+app.post("/update-profile", async (req, res) => {
+  const { email, diet, allergies } = req.body;
+
+  const user = await updateUser(email, { diet: diet || "", allergies: allergies || "" });
+
+  if (!user) {
+    return res.redirect(`/profile?email=${encodeURIComponent(email)}&error=User+not+found`);
+  }
+
+  return res.redirect(`/profile?email=${encodeURIComponent(email)}&success=Preferences+updated`);
+});
+
