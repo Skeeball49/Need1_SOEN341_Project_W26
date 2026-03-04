@@ -1,0 +1,16 @@
+<script src="/transition.js" defer></script>
+<header class="topbar">
+  <a href="<% if (typeof user !== 'undefined' && user) { %>/dashboard?email=<%= user.email %><% } else { %>/<% } %>" class="brand">Meal<em>Major</em></a>
+
+  <% if (typeof user !== 'undefined' && user) { %>
+    <nav class="topbar-nav">
+      <a href="/dashboard?email=<%= user.email %>" class="topbar-link">Home</a>
+      <a href="/planner?email=<%= user.email %>" class="topbar-link">Planner</a>
+      <a href="/recipes?email=<%= user.email %>" class="topbar-link">Recipes</a>
+      <a href="/pantry?email=<%= user.email %>" class="topbar-link">Pantry</a>
+    </nav>
+    <a href="/profile?email=<%= user.email %>" class="user-chip" title="Profile">
+      <div class="user-av"><%= user.email.substring(0, 2).toUpperCase() %></div>
+    </a>
+  <% } %>
+</header>
