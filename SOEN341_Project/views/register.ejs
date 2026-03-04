@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="auth-body">
+
+  <div class="page-transition"></div>
+
+  <div class="auth-split">
+
+    <!-- ── Left: food photo ──────────────────────────────── -->
+    <div class="auth-photo">
+      <div class="auth-photo-content">
+        <div class="auth-photo-brand">
+          <div class="auth-logo-mark"></div>
+          <span>MealMajor</span>
+        </div>
+        <blockquote class="auth-quote">
+          Start eating<br/><span class="auth-quote-accent">smarter.</span>
+        </blockquote>
+      </div>
+    </div>
+
+    <!-- ── Right: form ───────────────────────────────────── -->
+    <div class="auth-panel">
+      <div class="auth-form-wrap">
+
+        <div class="auth-form-logo" id="authLogo">
+          <div class="logo-mark"></div>
+          <span class="logo-text">MealMajor</span>
+        </div>
+
+        <div class="auth-heading" id="authHeading">
+          <h1>Create your<br/>account</h1>
+          <p>Start planning meals in minutes.</p>
+        </div>
+
+        <% if (error) { %>
+        <div class="auth-error" id="authError">
+          <span><%= error %></span>
+          <a href="/login">Log in instead →</a>
+        </div>
+        <% } %>
+
+        <form class="form" method="POST" action="/register">
+
+          <label>
+            Email
+            <input name="email" type="email" placeholder="you@school.ca" required />
+          </label>
+
+          <label id="fieldPassword">
+            Password
+            <div class="pw-wrap">
+              <input
+                name="password"
+                type="password"
+                id="pwInput"
+                placeholder="min 6 characters"
+                minlength="6"
+                required
+                style="width:100%;padding-right:46px"
+              />
+              <button type="button" class="pw-toggle" id="pwToggle" aria-label="Toggle password">
+                <svg id="eyeOpen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg id="eyeClosed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
+          </label>
+
+          <label>
+            Confirm password
+            <input name="ConfirmPassword" type="password" minlength="6" placeholder="repeat password" required />
+          </label>
+
+          <button class="btn w-full btn-lg" id="submitBtn" type="submit">Create account</button>
+
+        </form>
+
+        <div class="auth-bottom" id="authBottom">
+          <span class="small" style="color:var(--muted)">Already have an account?</span>
+          <a href="/login">Log in</a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="/transitions.js"></script>
+  <script>
+    // ── Password toggle ──────────────────────────────────────
+    var pwToggle  = document.getElementById('pwToggle');
+    var pwInput   = document.getElementById('pwInput');
+    var eyeOpen   = document.getElementById('eyeOpen');
+    var eyeClosed = document.getElementById('eyeClosed');
+
+    pwToggle.addEventListener('click', function () {
+      var show = pwInput.type === 'password';
+      pwInput.type            = show ? 'text'  : 'password';
+      eyeOpen.style.display   = show ? 'none'  : '';
+      eyeClosed.style.display = show ? ''      : 'none';
+    });
+
+    // ── GSAP entrance ────────────────────────────────────────
+    gsap.timeline({ delay: 0.25 })
+      .fromTo('#authLogo',
+        { opacity: 0, y: -16 },
+        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' })
+      .fromTo('#authHeading',
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' },
+        '-=0.15')
+      .fromTo('.form label, #submitBtn, #authBottom, #authError',
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, stagger: 0.07, duration: 0.4, ease: 'power2.out' },
+        '-=0.2');
+
+    gsap.fromTo('.auth-photo-brand',
+      { opacity: 0, y: -10 },
+      { opacity: 1, y: 0, duration: 0.5, delay: 0.4, ease: 'power2.out' });
+
+    gsap.fromTo('.auth-quote',
+      { opacity: 0, y: 24 },
+      { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', delay: 0.6 });
+
+    <% if (error) { %>
+    gsap.fromTo('#authError',
+      { x: -10 },
+      { x: 0, duration: 0.7, ease: 'elastic.out(1, 0.3)' });
+    <% } %>
+  </script>
+
+</body>
+</html>
