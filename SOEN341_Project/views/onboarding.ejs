@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="onb-body">
+
+  <div class="onb-wrap">
+
+    <!-- Brand -->
+    <div class="onb-brand">Meal<em>Major</em></div>
+
+    <!-- Progress dots -->
+    <div class="onb-progress">
+      <div class="onb-dot active" id="dot-0"></div>
+      <div class="onb-dot" id="dot-1"></div>
+      <div class="onb-dot" id="dot-2"></div>
+    </div>
+
+    <!-- Single form wrapping all steps -->
+    <form action="/onboarding" method="POST" id="onb-form">
+      <input type="hidden" name="email" value="<%= user.email %>">
+      <input type="hidden" name="diet" id="diet-input" value="">
+      <input type="hidden" name="allergies" id="allergies-input" value="">
+
+      <!-- ── Step 1: Allergies ── -->
+      <div class="onb-slide active" id="slide-0">
+        <div class="onb-header">
+          <div class="onb-eyebrow">Step 1 of 3</div>
+          <h1 class="onb-title">Any food allergies?</h1>
+          <p class="onb-sub">We'll keep these out of your meal recommendations.</p>
+        </div>
+
+        <div class="allergy-grid">
+          <div class="allergy-tile" data-value="Nuts">
+            <div class="allergy-emoji">🥜</div>
+            <div class="allergy-label">Nuts</div>
+          </div>
+          <div class="allergy-tile" data-value="Shellfish">
+            <div class="allergy-emoji">🦐</div>
+            <div class="allergy-label">Shellfish</div>
+          </div>
+          <div class="allergy-tile" data-value="Dairy">
+            <div class="allergy-emoji">🧀</div>
+            <div class="allergy-label">Dairy</div>
+          </div>
+          <div class="allergy-tile" data-value="Gluten">
+            <div class="allergy-emoji">🌾</div>
+            <div class="allergy-label">Gluten</div>
+          </div>
+          <div class="allergy-tile" data-value="Eggs">
+            <div class="allergy-emoji">🥚</div>
+            <div class="allergy-label">Eggs</div>
+          </div>
+          <div class="allergy-tile" data-value="Soy">
+            <div class="allergy-emoji">🫘</div>
+            <div class="allergy-label">Soy</div>
+          </div>
+        </div>
+
+        <div class="onb-actions">
+          <button type="button" class="onb-none-btn" id="none-allergies-btn">None of these</button>
+          <button type="button" class="btn onb-next-btn" id="next-0">Continue →</button>
+        </div>
+      </div>
+
+      <!-- ── Step 2: Diet ── -->
+      <div class="onb-slide" id="slide-1">
+        <div class="onb-header">
+          <div class="onb-eyebrow">Step 2 of 3</div>
+          <h1 class="onb-title">What's your eating style?</h1>
+          <p class="onb-sub">Choose what fits you best — you can change this anytime.</p>
+        </div>
+
+        <div class="diet-grid">
+          <div class="diet-card" data-value="Vegan"
+            style="background-image:url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80')">
+            <div class="diet-card-overlay"></div>
+            <div class="diet-card-body">
+              <div class="diet-card-icon">🌱</div>
+              <div class="diet-card-name">Plant-based</div>
+              <div class="diet-card-desc">Vegan &amp; vegetarian</div>
+            </div>
+            <div class="diet-card-check">✓</div>
+          </div>
+          <div class="diet-card" data-value="High-Protein"
+            style="background-image:url('https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80')">
+            <div class="diet-card-overlay"></div>
+            <div class="diet-card-body">
+              <div class="diet-card-icon">💪</div>
+              <div class="diet-card-name">High Protein</div>
+              <div class="diet-card-desc">Meat, fish &amp; gains</div>
+            </div>
+            <div class="diet-card-check">✓</div>
+          </div>
+          <div class="diet-card" data-value="Balanced"
+            style="background-image:url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=600&q=80')">
+            <div class="diet-card-overlay"></div>
+            <div class="diet-card-body">
+              <div class="diet-card-icon">⚖️</div>
+              <div class="diet-card-name">Balanced</div>
+              <div class="diet-card-desc">A bit of everything</div>
+            </div>
+            <div class="diet-card-check">✓</div>
+          </div>
+          <div class="diet-card" data-value="Keto"
+            style="background-image:url('https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=600&q=80')">
+            <div class="diet-card-overlay"></div>
+            <div class="diet-card-body">
+              <div class="diet-card-icon">🥑</div>
+              <div class="diet-card-name">Low Carb / Keto</div>
+              <div class="diet-card-desc">High fat, low carbs</div>
+            </div>
+            <div class="diet-card-check">✓</div>
+          </div>
+          <div class="diet-card" data-value="No Preference"
+            style="background-image:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80')">
+            <div class="diet-card-overlay"></div>
+            <div class="diet-card-body">
+              <div class="diet-card-icon">🍽️</div>
+              <div class="diet-card-name">No Preference</div>
+              <div class="diet-card-desc">Open to anything</div>
+            </div>
+            <div class="diet-card-check">✓</div>
+          </div>
+        </div>
+
+        <div class="onb-actions">
+          <button type="button" class="onb-back-btn" id="back-1">← Back</button>
+          <button type="button" class="btn onb-next-btn" id="next-1">Continue →</button>
+        </div>
+      </div>
+
+      <!-- ── Step 3: Handoff ── -->
+      <div class="onb-slide" id="slide-2">
+        <div class="onb-handoff">
+          <div class="onb-handoff-icon" id="handoff-icon">🎉</div>
+          <h1 class="onb-title" id="handoff-title">You're all set!</h1>
+          <p class="onb-sub" id="handoff-sub">We'll personalise your meal plan based on your preferences.</p>
+          <div class="onb-summary" id="onb-summary"></div>
+        </div>
+
+        <div class="onb-actions">
+          <button type="button" class="onb-back-btn" id="back-2">← Back</button>
+          <button type="submit" class="btn onb-submit-btn">Let's start cooking →</button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.onb-slide');
+    const dots   = document.querySelectorAll('.onb-dot');
+    let current  = 0;
+
+    // ── Allergy selection ──
+    const selectedAllergies = new Set();
+    document.querySelectorAll('.allergy-tile').forEach(tile => {
+      tile.addEventListener('click', () => {
+        const val = tile.dataset.value;
+        if (selectedAllergies.has(val)) {
+          selectedAllergies.delete(val);
+          tile.classList.remove('selected');
+        } else {
+          selectedAllergies.add(val);
+          tile.classList.add('selected');
+        }
+        syncAllergiesInput();
+      });
+    });
+
+    document.getElementById('none-allergies-btn').addEventListener('click', () => {
+      selectedAllergies.clear();
+      document.querySelectorAll('.allergy-tile').forEach(t => t.classList.remove('selected'));
+      syncAllergiesInput();
+      goTo(1);
+    });
+
+    function syncAllergiesInput() {
+      document.getElementById('allergies-input').value = [...selectedAllergies].join(', ');
+    }
+
+    // ── Diet selection (single) ──
+    let selectedDiet = '';
+    document.querySelectorAll('.diet-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.diet-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedDiet = card.dataset.value;
+        document.getElementById('diet-input').value = selectedDiet;
+      });
+    });
+
+    // ── Navigation ──
+    function goTo(n) {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = n;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+
+      if (current === 2) buildHandoff();
+    }
+
+    document.getElementById('next-0').addEventListener('click', () => goTo(1));
+    document.getElementById('next-1').addEventListener('click', () => goTo(2));
+    document.getElementById('back-1').addEventListener('click', () => goTo(0));
+    document.getElementById('back-2').addEventListener('click', () => goTo(1));
+
+    // ── Handoff content ──
+    function buildHandoff() {
+      const name = '<%= user.email.split("@")[0] %>';
+      const allergies = [...selectedAllergies];
+      const diet = selectedDiet;
+      const icon  = document.getElementById('handoff-icon');
+      const title = document.getElementById('handoff-title');
+      const sub   = document.getElementById('handoff-sub');
+      const sum   = document.getElementById('onb-summary');
+
+      const chips = [];
+
+      if (diet && diet !== 'No Preference') {
+        chips.push(`<span class="onb-chip onb-chip-diet">${diet}</span>`);
+      }
+      if (allergies.length > 0) {
+        allergies.forEach(a => chips.push(`<span class="onb-chip onb-chip-allergy">${a} free</span>`));
+      }
+
+      if (!diet && allergies.length === 0) {
+        icon.textContent  = '🌍';
+        title.textContent = 'Wide open palate!';
+        sub.textContent   = 'We\'ll surface popular recipes and learn your taste as you plan meals.';
+        sum.innerHTML = '';
+      } else {
+        icon.textContent  = '🎉';
+        title.textContent = `You're all set, ${name}!`;
+        sub.textContent   = 'Your feed will be tailored to your preferences from day one.';
+        sum.innerHTML = chips.join('');
+      }
+    }
+  </script>
+</body>
+</html>
