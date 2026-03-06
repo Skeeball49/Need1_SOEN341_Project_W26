@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipes — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <%
+    const catEmoji = {
+      'Main Course':'🍽', 'Breakfast':'🍳', 'Lunch':'🥙', 'Dinner':'🌙',
+      'Dessert':'🍰', 'Snack':'🍿', 'Soup':'🍲', 'Salad':'🥗',
+      'Pasta':'🍝', 'Sandwich':'🥪', 'Pizza':'🍕', 'Seafood':'🦐',
+      'Vegetarian':'🥦', 'Vegan':'🌱'
+    };
+    const categories = [...new Set(recipes.map(r => r.category).filter(Boolean))];
+    const emailParam = (typeof user !== 'undefined' && user) ? '?email=' + encodeURIComponent(user.email) : '';
+    const emailAmp   = (typeof user !== 'undefined' && user) ? '&email=' + encodeURIComponent(user.email) : '';
+    const userEmail  = (typeof user !== 'undefined' && user) ? user.email : '';
+  %>
+
+  <main class="rc-main">
+
+    <!-- ── Header ── -->
+    <div class="rc-page-header">
+      <div>
+        <h1 class="big-title">Recipes</h1>
+        <p class="rc-count"><%= recipes.length %> dish<%= recipes.length !== 1 ? 'es' : '' %> available</p>
+      </div>
+      <a href="/recipes/new<%= emailParam %>" class="btn">+ Add yours</a>
+    </div>
+
+    <!-- ── Search bar ── -->
+    <div class="rc-search-wrap">
+      <div class="rc-search-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--muted)">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="rc-search" placeholder="Search by name or ingredient…" autocomplete="off">
+        <button id="rc-search-clear" class="rc-clear-btn" style="display:none">✕</button>
+      </div>
+    </div>
+
+    <!-- ── Tag filter row ── -->
+    <div class="rc-tags-row">
+      <button class="chip on" data-filter="all">All</button>
+      <% categories.forEach(cat => { %>
+        <button class="chip" data-filter="<%= cat %>"><%= catEmoji[cat] || '🍽' %> <%= cat %></button>
+      <% }) %>
+      <button class="chip" data-filter="quick">⚡ Under 30 min</button>
+      <button class="chip" data-filter="easy">Easy</button>
+    </div>
+
+    <!-- ── Empty state ── -->
+    <div id="rc-empty" class="rc-empty" style="display:none">
+      <div style="font-size:40px;margin-bottom:12px">🔍</div>
+      <div>No recipes found</div>
+      <p class="muted" style="font-size:13px;margin-top:6px">Try a different search or filter</p>
+    </div>
+
+    <% if (recipes.length === 0) { %>
+      <div class="rc-empty">
+        <div style="font-size:40px;margin-bottom:12px">🍽</div>
+        <div>No recipes yet</div>
+        <a href="/recipes/new<%= emailParam %>" class="btn" style="margin-top:16px;font-size:13px">Create your first recipe</a>
+      </div>
+    <% } %>
+
+    <!-- ── Recipe grid ── -->
+    <div class="rc-grid" id="rc-grid">
+      <% recipes.forEach(r => {
+        const emoji = catEmoji[r.category] || '🍽';
+        const ingPreview = (r.ingredients || []).slice(0, 4).map(i => {
+          const m = i.match(/^[\d.]+\s+(.+)$/);
+          return m ? m[1] : i;
+        }).join(', ');
+      %>
+        <div class="rc-card"
+          data-title="<%= r.title.toLowerCase() %>"
+          data-ingredients="<%= (r.ingredients || []).join(' ').toLowerCase() %>"
+          data-category="<%= (r.category || '').toLowerCase() %>"
+          data-difficulty="<%= (r.difficulty || '').toLowerCase() %>"
+          data-time="<%= r.prepTime || 0 %>">
+
+          <div class="rc-card-thumb"><span class="rc-card-emoji"><%= emoji %></span></div>
+
+          <div class="rc-card-body">
+            <div class="rc-card-name"><%= r.title %></div>
+            <div class="rc-card-desc"><%= ingPreview || 'No ingredients listed' %></div>
+            <div class="rc-card-meta">
+              <span><%= r.prepTime || '?' %> min</span>
+              <span>· <%= r.difficulty || 'Easy' %></span>
+              <% if (r.calories) { %><span>· <%= r.calories %> kcal</span><% } %>
+            </div>
+            <div class="rc-card-actions">
+              <a href="/recipes/<%= r.id %>/edit<%= emailParam %>" class="rc-action-btn">Edit</a>
+              <form method="POST" action="/recipes/<%= r.id %>/delete" style="display:inline;margin:0">
+                <input type="hidden" name="email" value="<%= userEmail %>">
+                <button type="submit" class="rc-action-btn rc-action-delete"
+                  onclick="return confirm('Delete this recipe?')">Delete</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+  </main>
+
+  <script>
+    const searchInput = document.getElementById('rc-search');
+    const clearBtn    = document.getElementById('rc-search-clear');
+    const grid        = document.getElementById('rc-grid');
+    const emptyState  = document.getElementById('rc-empty');
+    const cards       = grid ? [...grid.querySelectorAll('.rc-card')] : [];
+    let activeFilter  = 'all';
+
+    function filterCards() {
+      const q = searchInput.value.toLowerCase().trim();
+      clearBtn.style.display = q ? '' : 'none';
+      let visible = 0;
+
+      cards.forEach(card => {
+        const matchSearch = !q
+          || card.dataset.title.includes(q)
+          || card.dataset.ingredients.includes(q);
+        const matchFilter = activeFilter === 'all'
+          || (activeFilter === 'quick' && Number(card.dataset.time) < 30)
+          || (activeFilter === 'easy'  && card.dataset.difficulty === 'easy')
+          || card.dataset.category === activeFilter.toLowerCase();
+
+        const show = matchSearch && matchFilter;
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+
+      if (emptyState) emptyState.style.display = visible === 0 && cards.length > 0 ? '' : 'none';
+    }
+
+    searchInput.addEventListener('input', filterCards);
+
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterCards();
+      searchInput.focus();
+    });
+
+    document.querySelectorAll('.chip[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (window.mmCarrot) window.mmCarrot();
+        document.querySelectorAll('.chip[data-filter]').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        activeFilter = btn.dataset.filter;
+        filterCards();
+      });
+    });
+
+    // GSAP entrance: cards stagger in on load
+    if (cards.length && typeof gsap !== 'undefined') {
+      gsap.from(cards, {
+        y: 18,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.05,
+        ease: 'power2.out',
+        clearProps: 'all'
+      });
+    }
+  </script>
+</body>
+</html>
