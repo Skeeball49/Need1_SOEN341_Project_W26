@@ -153,3 +153,120 @@ app.post("/update-profile", async (req, res) => {
   return res.redirect(`/profile?email=${encodeURIComponent(email)}&success=Preferences+updated`);
 });
 
+// RM-5 Search and filter recipes
+app.get("/recipes", async (req, res) => {
+  const { q = "", maxTime = "", difficulty = "", maxCost = "", tag = "", email = "" } = req.query;
+
+  const user = email ? await findUser(email) : null;
+
+  let query = supabase.from("recipes").select("*");
+
+  if (q.trim()) {
+    query = query.or(`title.ilike.%${q.trim()}%`);
+  }
+  if (maxTime) query = query.lte("prepTime", Number(maxTime));
+  if (difficulty) query = query.eq("difficulty", difficulty);
+  if (maxCost) query = query.lte("cost", Number(maxCost));
+
+  const { data: recipes } = await query;
+
+  let filtered = recipes || [];
+  if (q.trim() && filtered.length === 0) {
+    const { data: all } = await supabase.from("recipes").select("*");
+    const needle = q.toLowerCase();
+    filtered = (all || []).filter(r =>
+      r.title.toLowerCase().includes(needle) ||
+      (r.ingredients || []).join(" ").toLowerCase().includes(needle)
+    );
+    if (maxTime) filtered = filtered.filter(r => Number(r.prepTime) <= Number(maxTime));
+    if (difficulty) filtered = filtered.filter(r => r.difficulty === difficulty);
+    if (maxCost) filtered = filtered.filter(r => Number(r.cost) <= Number(maxCost));
+  }
+  if (tag.trim()) filtered = filtered.filter(r => (r.tags || []).includes(tag.trim()));
+
+  res.render("recipes", { recipes: filtered, query: { q, maxTime, difficulty, maxCost, tag }, user });
+});
+
+app.get("/recipes/new", async (req, res) => {
+  const { email = "" } = req.query;
+  const user = email ? await findUser(email) : null;
+  res.render("recipe-form", { recipe: null, error: "", user });
+});
+
+app.post("/recipes", async (req, res) => {
+  const { title, ingredients, prepTime, steps, cost, difficulty, tags, servings, calories, protein, carbs, fat, category } = req.body;
+
+  if (!title || !ingredients || !steps) {
+    return res.render("recipe-form", { recipe: null, error: "Title, ingredients, and steps are required." });
+  }
+
+  const recipe = {
+    title: title.trim(),
+    ingredients: ingredients.split("\n").map(s => s.trim()).filter(Boolean),
+    prepTime: Number(prepTime || 0),
+    steps: steps.split("\n").map(s => s.trim()).filter(Boolean),
+    cost: Number(cost || 0),
+    difficulty: difficulty || "Easy",
+    tags: (tags || "").split(",").map(s => s.trim()).filter(Boolean),
+    servings: Number(servings || 4),
+    calories: Number(calories || 0),
+    protein: Number(protein || 0),
+    carbs: Number(carbs || 0),
+    fat: Number(fat || 0),
+    category: category || "Main Course"
+  };
+
+  await supabase.from("recipes").insert(recipe);
+
+  const { email = "" } = req.body;
+  res.redirect(`/recipes${email ? `?email=${encodeURIComponent(email)}` : ""}`);
+});
+
+// RM-3 Edit recipes
+app.get("/recipes/:id/edit", async (req, res) => {
+  const { email = "" } = req.query;
+  const user = email ? await findUser(email) : null;
+
+  const { data: recipe } = await supabase
+    .from("recipes")
+    .select("*")
+    .eq("id", req.params.id)
+    .single();
+
+  if (!recipe) return res.redirect(`/recipes${email ? `?email=${encodeURIComponent(email)}` : ""}`);
+
+  res.render("recipe-form", { recipe, error: "", user });
+});
+
+app.post("/recipes/:id", async (req, res) => {
+  const { title, ingredients, prepTime, steps, cost, difficulty, tags, servings, calories, protein, carbs, fat, category } = req.body;
+
+  const updates = {
+    title: title.trim(),
+    ingredients: ingredients.split("\n").map(s => s.trim()).filter(Boolean),
+    prepTime: Number(prepTime || 0),
+    steps: steps.split("\n").map(s => s.trim()).filter(Boolean),
+    cost: Number(cost || 0),
+    difficulty: difficulty || "Easy",
+    tags: (tags || "").split(",").map(s => s.trim()).filter(Boolean),
+    servings: Number(servings || 4),
+    calories: Number(calories || 0),
+    protein: Number(protein || 0),
+    carbs: Number(carbs || 0),
+    fat: Number(fat || 0),
+    category: category || "Main Course"
+  };
+
+  await supabase.from("recipes").update(updates).eq("id", req.params.id);
+
+  const { email = "" } = req.body;
+  res.redirect(`/recipes${email ? `?email=${encodeURIComponent(email)}` : ""}`);
+});
+
+// RM-4 Delete recipes
+app.post("/recipes/:id/delete", async (req, res) => {
+  const { email = "" } = req.body;
+  await supabase.from("recipes").delete().eq("id", req.params.id);
+  res.redirect(`/recipes${email ? `?email=${encodeURIComponent(email)}` : ""}`);
+});
+
