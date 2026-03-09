@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planner — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .meal-chip {
+      background: rgba(91,201,255,0.12);
+      border: 1px solid rgba(91,201,255,0.28);
+      border-radius: 7px;
+      padding: 5px 7px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+    .meal-chip span { font-size: 0.78rem; line-height: 1.3; }
+    .meal-chip button {
+      background: none;
+      border: none;
+      color: rgba(255,100,100,0.75);
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .meal-chip button:hover { color: #ff4d4d; }
+  </style>
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="section">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:0 24px 20px">
+      <div>
+        <div class="medium-title">Week Planner</div>
+        <p class="muted" style="margin-top:4px">Week of <strong><%= weekStart %></strong></p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <a class="btn btn-secondary" href="/templates?email=<%= encodeURIComponent(user.email) %>">
+          📋 Templates
+        </a>
+        <a class="btn" href="/grocery?email=<%= encodeURIComponent(user.email) %>">
+          🛒 Grocery List
+        </a>
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert-error"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="alert-success"><%= success %></div>
+    <% } %>
+
+    <div style="padding:0 24px 20px">
+      <div class="split-card">
+        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px;">Add Meal</h2>
+        <% if (recipes.length === 0) { %>
+          <p class="muted">No recipes yet. <a href="/recipes/new">Create a recipe</a> first.</p>
+        <% } else { %>
+          <form method="POST" action="/planner/add" class="form">
+            <input type="hidden" name="email" value="<%= user.email %>">
+            <input type="hidden" name="week_start" value="<%= weekStart %>">
+
+            <label>Day
+              <select name="day" required>
+                <% days.forEach(d => { %><option value="<%= d %>"><%= d %></option><% }) %>
+              </select>
+            </label>
+
+            <label>Meal Type
+              <select name="meal_type" required>
+                <% mealTypes.forEach(mt => { %><option value="<%= mt %>"><%= mt %></option><% }) %>
+              </select>
+            </label>
+
+            <label>Recipe
+              <select name="recipe_id" required>
+                <option value="">Choose a recipe</option>
+                <% recipes.forEach(r => { %>
+                  <option value="<%= r.id %>"><%= r.title %></option>
+                <% }) %>
+              </select>
+            </label>
+
+            <button class="btn" type="submit">Add to Planner</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="plan-wrap" style="padding:0 24px">
+      <table class="plan-table">
+        <thead>
+          <tr>
+            <th></th>
+            <% days.forEach(d => { %><th><%= d %></th><% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% mealTypes.forEach(mt => { %>
+            <tr>
+              <td><%= mt %></td>
+              <% days.forEach(d => { %>
+                <td>
+                  <% if (grid[d][mt].length > 0) { %>
+                    <% grid[d][mt].forEach(entry => { %>
+                      <div class="meal-chip">
+                        <span><%= entry.recipe_title %></span>
+                        <form method="POST" action="/planner/remove" style="margin:0;display:inline;">
+                          <input type="hidden" name="email" value="<%= user.email %>">
+                          <input type="hidden" name="entry_id" value="<%= entry.id %>">
+                          <button type="submit" title="Remove">✕</button>
+                        </form>
+                      </div>
+                    <% }) %>
+                  <% } else { %>
+                    <div class="pca">+</div>
+                  <% } %>
+                </td>
+              <% }) %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="padding:20px 24px;display:flex;gap:10px;">
+      <a class="btn btn-secondary" href="/dashboard">← Dashboard</a>
+      <a class="btn btn-secondary" href="/recipes">Manage Recipes</a>
+    </div>
+
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
