@@ -270,3 +270,111 @@ app.post("/recipes/:id/delete", async (req, res) => {
   res.redirect(`/recipes${email ? `?email=${encodeURIComponent(email)}` : ""}`);
 });
 
+// ---- Sprint 3: Weekly Meal Planner ----
+
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
+
+// Returns the ISO date string (YYYY-MM-DD) for the Monday of the current week
+function getWeekStart() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  return d.toISOString().split("T")[0];
+}
+
+// WP-1 / WP-2: View weekly meal planner grid
+app.get("/planner", async (req, res) => {
+  const { email, error = "", success = "" } = req.query;
+  if (!email) return res.redirect("/login");
+
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+
+  const weekStart = getWeekStart();
+
+  const { data: planEntries } = await supabase
+    .from("meal_plans")
+    .select("*")
+    .eq("user_email", email)
+    .eq("week_start", weekStart);
+
+  const { data: recipes } = await supabase.from("recipes").select("id, title");
+
+  // Build grid: { Day: { MealType: [entries] } }
+  const grid = {};
+  for (const day of DAYS) {
+    grid[day] = {};
+    for (const mt of MEAL_TYPES) {
+      grid[day][mt] = [];
+    }
+  }
+  for (const entry of planEntries || []) {
+    if (grid[entry.day]?.[entry.meal_type]) {
+      grid[entry.day][entry.meal_type].push(entry);
+    }
+  }
+
+  res.render("planner", {
+    user,
+    grid,
+    days: DAYS,
+    mealTypes: MEAL_TYPES,
+    recipes: recipes || [],
+    weekStart,
+    error,
+    success,
+  });
+});
+
+// WP-3: Assign a recipe to a day/meal-type slot
+app.post("/planner/add", async (req, res) => {
+  const { email, day, meal_type, recipe_id } = req.body;
+  if (!email || !day || !meal_type || !recipe_id) {
+    return res.redirect(`/planner?email=${encodeURIComponent(email)}&error=Please+fill+in+all+fields`);
+  }
+
+  const weekStart = getWeekStart();
+
+  // WP-5: Prevent duplicate recipe in the same week/day/meal-type slot
+  const { data: existing } = await supabase
+    .from("meal_plans")
+    .select("id")
+    .eq("user_email", email)
+    .eq("week_start", weekStart)
+    .eq("day", day)
+    .eq("meal_type", meal_type)
+    .eq("recipe_id", recipe_id);
+
+  if (existing && existing.length > 0) {
+    return res.redirect(
+      `/planner?email=${encodeURIComponent(email)}&error=That+recipe+is+already+planned+for+this+slot`
+    );
+  }
+
+  const { data: recipe } = await supabase
+    .from("recipes")
+    .select("title")
+    .eq("id", recipe_id)
+    .single();
+
+  await supabase.from("meal_plans").insert({
+    user_email: email,
+    week_start: weekStart,
+    day,
+    meal_type,
+    recipe_id: Number(recipe_id),
+    recipe_title: recipe?.title || "Unknown",
+  });
+
+  res.redirect(`/planner?email=${encodeURIComponent(email)}&success=Meal+added`);
+});
+
+// WP-4: Remove a meal entry from the planner
+app.post("/planner/remove", async (req, res) => {
+  const { email, entry_id } = req.body;
+  await supabase.from("meal_plans").delete().eq("id", entry_id).eq("user_email", email);
+  res.redirect(`/planner?email=${encodeURIComponent(email)}`);
+});
+
