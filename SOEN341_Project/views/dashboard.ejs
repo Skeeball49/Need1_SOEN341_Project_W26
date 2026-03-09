@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <%
+    const mealEmoji = { Breakfast: '🌅', Lunch: '☀️', Dinner: '🌙', Snack: '🍎' };
+    const allMealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+    const totalPlanned = Object.values(todayMeals).flat().length;
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    const displayName = user.email.split('@')[0];
+  %>
+
+  <main>
+
+    <!-- ── Greeting ── -->
+    <div class="dash-hero">
+      <div>
+        <div class="eyebrow"><%= new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) %> &nbsp;·&nbsp; <%= todayName %></div>
+        <div class="big-title"><%= greeting %>,<br><em><%= displayName %>.</em></div>
+      </div>
+    </div>
+
+    <!-- ── Today's Overview ── -->
+    <div class="dash-section">
+      <div class="eyebrow" style="margin-bottom:16px">Today's meals</div>
+
+      <div class="today-overview">
+
+        <!-- Calorie ring -->
+        <div class="today-ring-col">
+          <div class="calorie-ring-wrap">
+            <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="9"/>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--coral)" stroke-width="9"
+                stroke-dasharray="314"
+                stroke-dashoffset="<%= ringOffset %>"
+                stroke-linecap="round"
+                style="transition:stroke-dashoffset .6s ease"/>
+            </svg>
+            <div class="calorie-ring-center">
+              <div class="ring-num"><%= todayCalories %></div>
+              <div class="ring-lbl">kcal</div>
+            </div>
+          </div>
+          <div class="ring-meta">
+            <div class="ring-goal">of <%= goals.daily_calories %> goal</div>
+            <div class="ring-pct"><%= calorieRingPct %>% reached</div>
+          </div>
+        </div>
+
+        <!-- Meal slots -->
+        <div class="today-meals-col">
+          <% allMealTypes.forEach(mt => { %>
+            <div class="today-meal-row">
+              <div class="today-meal-icon"><%= mealEmoji[mt] %></div>
+              <div class="today-meal-body">
+                <div class="today-meal-type"><%= mt %></div>
+                <% if (todayMeals[mt] && todayMeals[mt].length > 0) { %>
+                  <% todayMeals[mt].forEach(m => { %>
+                    <div class="today-meal-name"><%= m.recipe_title %></div>
+                  <% }) %>
+                <% } else { %>
+                  <div class="today-meal-empty">Not planned</div>
+                <% } %>
+              </div>
+              <% if (todayMeals[mt] && todayMeals[mt].length > 0) { %>
+                <div class="today-meal-cal">
+                  <%= todayMeals[mt].reduce((s, m) => s + Number(m.recipe?.calories || 0), 0) %> kcal
+                </div>
+              <% } %>
+            </div>
+          <% }) %>
+
+          <% if (totalPlanned === 0) { %>
+            <a href="/planner?email=<%= user.email %>" class="today-plan-cta">
+              Plan today's meals →
+            </a>
+          <% } %>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Feature Grid ── -->
+    <div class="dash-section" style="padding-top:0">
+      <div class="eyebrow" style="margin-bottom:16px">Features</div>
+      <div class="dash-grid">
+
+        <!-- Recipes -->
+        <a href="/recipes?email=<%= user.email %>" class="dash-tile">
+          <div class="dash-tile-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
+            </svg>
+          </div>
+          <div class="dash-tile-label">Recipes</div>
+        </a>
+
+        <!-- Planner + Templates (bundled) -->
+        <div class="dash-tile dash-tile-bundle">
+          <div class="dash-tile-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
+            </svg>
+          </div>
+          <div class="dash-tile-label">Planning</div>
+          <div class="dash-tile-subs">
+            <a href="/planner?email=<%= user.email %>" class="dash-tile-sub">Planner</a>
+            <a href="/templates?email=<%= user.email %>" class="dash-tile-sub">Templates</a>
+          </div>
+        </div>
+
+        <!-- Grocery + Pantry (bundled) -->
+        <div class="dash-tile dash-tile-bundle">
+          <div class="dash-tile-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"/>
+            </svg>
+          </div>
+          <div class="dash-tile-label">Shopping</div>
+          <div class="dash-tile-subs">
+            <a href="/grocery?email=<%= user.email %>" class="dash-tile-sub">Grocery</a>
+            <a href="/pantry?email=<%= user.email %>" class="dash-tile-sub">Pantry</a>
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <a href="/recommendations?email=<%= user.email %>" class="dash-tile">
+          <div class="dash-tile-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/>
+            </svg>
+          </div>
+          <div class="dash-tile-label">For You</div>
+        </a>
+
+        <!-- Nutrition (emoji kept per design) -->
+        <a href="/nutrition?email=<%= user.email %>" class="dash-tile">
+          <div class="dash-tile-icon" style="font-size:22px">🥗</div>
+          <div class="dash-tile-label">Nutrition</div>
+        </a>
+
+        <!-- Budget -->
+        <a href="/budget?email=<%= user.email %>" class="dash-tile">
+          <div class="dash-tile-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/>
+            </svg>
+          </div>
+          <div class="dash-tile-label">Budget</div>
+        </a>
+
+      </div>
+    </div>
+
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
