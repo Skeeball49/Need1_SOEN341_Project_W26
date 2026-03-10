@@ -378,3 +378,170 @@ app.post("/planner/remove", async (req, res) => {
   res.redirect(`/planner?email=${encodeURIComponent(email)}`);
 });
 
+// ---- Sprint 3 Unique Feature: Smart Grocery List Generation ----
+
+app.get("/grocery", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.redirect("/login");
+
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+
+  const weekStart = getWeekStart();
+
+  const { data: planEntries } = await supabase
+    .from("meal_plans")
+    .select("recipe_id")
+    .eq("user_email", email)
+    .eq("week_start", weekStart);
+
+  if (!planEntries || planEntries.length === 0) {
+    return res.render("grocery", { user, groceryList: [], weekStart, totalCost: 0 });
+  }
+
+  const recipeIds = [...new Set(planEntries.map((e) => e.recipe_id))];
+  const { data: recipes } = await supabase.from("recipes").select("*").in("id", recipeIds);
+
+  // Get user's pantry items
+  const { data: pantryItems } = await supabase
+    .from("pantry_items")
+    .select("*")
+    .eq("user_email", email);
+
+  const pantryMap = {};
+  for (const item of pantryItems || []) {
+    pantryMap[item.ingredient_name.toLowerCase().trim()] = Number(item.quantity || 0);
+  }
+
+  // Consolidate ingredients: parse leading numbers and sum quantities
+  const ingredientMap = {};
+  let totalCost = 0;
+
+  for (const recipe of recipes || []) {
+    totalCost += Number(recipe.cost || 0);
+    for (const raw of recipe.ingredients || []) {
+      const match = raw.trim().match(/^(\d+(?:\.\d+)?)\s+(.+)$/);
+      if (match) {
+        const qty = parseFloat(match[1]);
+        const name = match[2].toLowerCase().trim();
+        ingredientMap[name] = (ingredientMap[name] || 0) + qty;
+      } else {
+        const name = raw.toLowerCase().trim();
+        ingredientMap[name] = (ingredientMap[name] || 0) + 1;
+      }
+    }
+  }
+
+  // Subtract pantry quantities and filter out items we already have
+  const groceryList = Object.entries(ingredientMap)
+    .map(([name, needed]) => {
+      const inPantry = pantryMap[name] || 0;
+      const toBuy = Math.max(0, needed - inPantry);
+      
+      // Try to match category from pantry items
+      let category = "Other";
+      const pantryItem = (pantryItems || []).find(p => p.ingredient_name.toLowerCase() === name);
+      if (pantryItem && pantryItem.category) {
+        category = pantryItem.category;
+      } else {
+        // Auto-categorize common items
+        if (name.includes("milk") || name.includes("cheese") || name.includes("yogurt") || name.includes("butter")) category = "Dairy";
+        else if (name.includes("chicken") || name.includes("beef") || name.includes("pork") || name.includes("fish")) category = "Meat";
+        else if (name.includes("apple") || name.includes("banana") || name.includes("lettuce") || name.includes("tomato")) category = "Produce";
+        else if (name.includes("rice") || name.includes("pasta") || name.includes("bread") || name.includes("flour")) category = "Grains";
+      }
+      
+      return { name, needed, inPantry, toBuy, category };
+    })
+    .filter(item => item.toBuy > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  // Group by category
+  const groupedList = {};
+  for (const item of groceryList) {
+    if (!groupedList[item.category]) groupedList[item.category] = [];
+    groupedList[item.category].push(item);
+  }
+
+  res.render("grocery", { user, groceryList, groupedList, weekStart, totalCost });
+});
+
+// ---- Pantry Management ----
+
+app.get("/pantry", async (req, res) => {
+  const { email, error = "", success = "" } = req.query;
+  if (!email) return res.redirect("/login");
+
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+
+  const { data: pantryItems } = await supabase
+    .from("pantry_items")
+    .select("*")
+    .eq("user_email", email)
+    .order("ingredient_name");
+
+  res.render("pantry", { user, pantryItems: pantryItems || [], error, success });
+});
+
+app.post("/pantry/add", async (req, res) => {
+  const { email, ingredient_name, quantity, unit, expiration_date, category } = req.body;
+  if (!email || !ingredient_name) {
+    return res.redirect(`/pantry?email=${encodeURIComponent(email)}&error=Ingredient+name+is+required`);
+  }
+
+  const normalizedName = ingredient_name.toLowerCase().trim();
+
+  // Check if item already exists
+  const { data: existing } = await supabase
+    .from("pantry_items")
+    .select("id, quantity")
+    .eq("user_email", email)
+    .eq("ingredient_name", normalizedName)
+    .single();
+
+  if (existing) {
+    // Update existing quantity
+    const newQty = Number(existing.quantity || 0) + Number(quantity || 1);
+    await supabase
+      .from("pantry_items")
+      .update({ 
+        quantity: newQty, 
+        unit: unit || "",
+        expiration_date: expiration_date || null,
+        category: category || "Other"
+      })
+      .eq("id", existing.id);
+  } else {
+    // Insert new item
+    await supabase.from("pantry_items").insert({
+      user_email: email,
+      ingredient_name: normalizedName,
+      quantity: Number(quantity || 1),
+      unit: unit || "",
+      expiration_date: expiration_date || null,
+      category: category || "Other"
+    });
+  }
+
+  res.redirect(`/pantry?email=${encodeURIComponent(email)}&success=Item+added`);
+});
+
+app.post("/pantry/remove", async (req, res) => {
+  const { email, item_id } = req.body;
+  await supabase.from("pantry_items").delete().eq("id", item_id).eq("user_email", email);
+  res.redirect(`/pantry?email=${encodeURIComponent(email)}&success=Item+removed`);
+});
+
+app.post("/pantry/update", async (req, res) => {
+  const { email, item_id, quantity } = req.body;
+  if (quantity && Number(quantity) > 0) {
+    await supabase
+      .from("pantry_items")
+      .update({ quantity: Number(quantity) })
+      .eq("id", item_id)
+      .eq("user_email", email);
+  }
+  res.redirect(`/pantry?email=${encodeURIComponent(email)}&success=Quantity+updated`);
+});
+
