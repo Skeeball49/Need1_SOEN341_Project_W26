@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grocery List — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    @media print {
+      .topbar, .no-print, footer { display: none !important; }
+      body { background: white; color: black; }
+    }
+  </style>
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="section">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:0 24px 20px">
+      <div>
+        <div class="medium-title">Grocery List</div>
+        <p class="muted" style="margin-top:4px">Week of <strong><%= weekStart %></strong></p>
+      </div>
+      <div style="display:flex;gap:8px;" class="no-print">
+        <a class="btn btn-secondary" href="/pantry?email=<%= encodeURIComponent(user.email) %>">
+          🏠 Pantry
+        </a>
+        <a class="btn btn-secondary" href="/planner?email=<%= encodeURIComponent(user.email) %>">
+          ← Planner
+        </a>
+      </div>
+    </div>
+
+    <% if (groceryList.length === 0) { %>
+      <div style="padding:0 24px">
+        <div class="split-card" style="text-align:center;padding:60px 24px;">
+          <p style="font-size:2.5rem;margin:0 0 10px;">🛒</p>
+          <h2 style="margin:0 0 8px;font-size:20px">No meals planned yet</h2>
+          <p class="muted">Add recipes to your planner and your grocery list will appear here.</p>
+          <a class="btn" href="/planner?email=<%= encodeURIComponent(user.email) %>" style="margin-top:16px;">
+            Go to Planner
+          </a>
+        </div>
+      </div>
+    <% } else { %>
+      <div style="padding:0 24px">
+
+        <!-- Ingredient list -->
+        <div class="split-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h2 style="margin:0;">Ingredients Needed</h2>
+            <span class="chip"><%= groceryList.length %> items</span>
+          </div>
+          <p class="muted" style="margin:0 0 14px;">Quantities are consolidated across all planned recipes. Grouped by category for easier shopping.</p>
+          
+          <% const categories = Object.keys(groupedList).sort(); %>
+          <% categories.forEach(category => { %>
+            <div style="margin-bottom:20px;">
+              <h3 style="font-size:0.95rem;margin:0 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">
+                <%= category %> (<%= groupedList[category].length %>)
+              </h3>
+              <div style="display:grid;gap:7px;">
+                <% groupedList[category].forEach(item => { %>
+                  <div class="grocery-item" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:10px;">
+                    <div style="flex:1;">
+                      <span style="text-transform:capitalize;font-weight:600;"><%= item.name %></span>
+                      <% if (item.inPantry > 0) { %>
+                        <div class="muted" style="font-size:0.8rem;margin-top:2px;">
+                          Need <%= item.needed %>, have <%= item.inPantry %> in pantry
+                        </div>
+                      <% } %>
+                    </div>
+                    <span style="color:var(--muted);font-weight:700;font-size:0.9rem;">Buy: <%= item.toBuy %></span>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+        <div class="groc-banner" style="margin-top:20px">
+          ✓ Smart pantry integration — showing only items you need to buy
+        </div>
+
+        <div style="margin-top:20px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+          <div class="stat-block">
+            <div class="stat-label">Items to buy</div>
+            <div class="stat-val" style="font-size:28px"><%= groceryList.length %></div>
+          </div>
+          <div class="stat-block accent-lime">
+            <div class="stat-label">Est. cost</div>
+            <div class="stat-val lime" style="font-size:28px">$<%= totalCost.toFixed(2) %></div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:10px" class="no-print">
+          <button class="btn" onclick="window.print()">🖨️ Print List</button>
+          <a class="btn btn-secondary" href="/planner?email=<%= encodeURIComponent(user.email) %>">Edit Meal Plan</a>
+        </div>
+
+      </div>
+    <% } %>
+
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
