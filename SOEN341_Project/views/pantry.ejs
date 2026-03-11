@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantry — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="section">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:0 24px 20px">
+      <div>
+        <div class="medium-title">Pantry</div>
+        <p class="muted" style="margin-top:4px">Track what you have for smarter grocery lists</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <a class="btn btn-secondary" href="/grocery?email=<%= encodeURIComponent(user.email) %>">
+          🛒 Grocery
+        </a>
+        <a class="btn btn-secondary" href="/planner?email=<%= encodeURIComponent(user.email) %>">
+          📅 Planner
+        </a>
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert-error" style="margin:0 24px 16px"><%= error %></div>
+    <% } %>
+
+    <% if (success) { %>
+      <div class="alert-success" style="margin:0 24px 16px"><%= success %></div>
+    <% } %>
+
+    <div style="padding:0 24px">
+
+      <div class="split-card">
+        <h2 style="font-size:18px;font-weight:600;margin:0 0 16px;">Current Inventory (<%= pantryItems.length %>)</h2>
+        
+        <% if (pantryItems.length === 0) { %>
+          <div style="text-align:center;padding:60px 24px;background:var(--off);border-radius:12px;">
+            <p style="font-size:2.5rem;margin:0 0 10px;">📦</p>
+            <h3 style="margin:0 0 8px;font-size:18px">Your pantry is empty</h3>
+            <p class="muted">Add ingredients you already have to get smarter grocery lists.</p>
+          </div>
+        <% } else { %>
+          <div style="display:grid;gap:8px;">
+            <% pantryItems.forEach(item => { %>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:10px;">
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                    <div style="font-weight:600;text-transform:capitalize;"><%= item.ingredient_name %></div>
+                    <% if (item.category && item.category !== 'Other') { %>
+                      <span class="chip" style="font-size:0.7rem;padding:2px 6px;"><%= item.category %></span>
+                    <% } %>
+                    <% if (item.expiration_date) { 
+                      const expDate = new Date(item.expiration_date);
+                      const today = new Date();
+                      const daysUntilExp = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+                    %>
+                      <% if (daysUntilExp < 0) { %>
+                        <span class="chip" style="font-size:0.7rem;padding:2px 6px;background:rgba(255,100,100,0.3);color:#ff6b6b;">Expired</span>
+                      <% } else if (daysUntilExp <= 3) { %>
+                        <span class="chip" style="font-size:0.7rem;padding:2px 6px;background:rgba(255,200,100,0.3);color:#ffa94d;">Expires in <%= daysUntilExp %> day<%= daysUntilExp !== 1 ? 's' : '' %></span>
+                      <% } %>
+                    <% } %>
+                  </div>
+                  <div class="muted" style="font-size:0.85rem;">
+                    Added <%= new Date(item.added_date).toLocaleDateString() %>
+                    <% if (item.expiration_date) { %>
+                      • Expires <%= new Date(item.expiration_date).toLocaleDateString() %>
+                    <% } %>
+                  </div>
+                </div>
+                
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <form action="/pantry/update" method="POST" style="display:flex;align-items:center;gap:6px;">
+                    <input type="hidden" name="email" value="<%= user.email %>">
+                    <input type="hidden" name="item_id" value="<%= item.id %>">
+                    <input 
+                      type="number" 
+                      name="quantity" 
+                      value="<%= item.quantity %>" 
+                      min="0.1" 
+                      step="0.1"
+                      style="width:70px;padding:6px 8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:inherit;font-size:0.9rem;"
+                      onchange="this.form.submit()"
+                    >
+                    <span class="muted" style="font-size:0.9rem;min-width:40px;"><%= item.unit || 'units' %></span>
+                  </form>
+                  
+                  <form action="/pantry/remove" method="POST" style="margin:0;">
+                    <input type="hidden" name="email" value="<%= user.email %>">
+                    <input type="hidden" name="item_id" value="<%= item.id %>">
+                    <button 
+                      type="submit" 
+                      class="btn" 
+                      style="padding:6px 12px;background:rgba(255,100,100,0.15);border:1px solid rgba(255,100,100,0.3);font-size:0.85rem;"
+                      onclick="return confirm('Remove <%= item.ingredient_name %> from pantry?')"
+                    >
+                      Remove
+                    </button>
+                  </form>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Add Item Form -->
+      <div class="split-card">
+        <h2 style="margin:0 0 16px;">Add to Pantry</h2>
+        <form action="/pantry/add" method="POST" class="form">
+          <input type="hidden" name="email" value="<%= user.email %>">
+          
+          <label>
+            Ingredient Name *
+            <input 
+              type="text" 
+              name="ingredient_name" 
+              placeholder="e.g., eggs, milk, flour"
+              required
+              style="text-transform:lowercase;"
+            >
+          </label>
+
+          <label>
+            Quantity
+            <input 
+              type="number" 
+              name="quantity" 
+              value="1" 
+              min="0.1" 
+              step="0.1"
+              placeholder="1"
+            >
+          </label>
+
+          <label>
+            Unit (optional)
+            <input 
+              type="text" 
+              name="unit" 
+              placeholder="e.g., cups, lbs, pieces"
+            >
+          </label>
+
+          <label>
+            Expiration Date (optional)
+            <input 
+              type="date" 
+              name="expiration_date"
+            >
+          </label>
+
+          <label>
+            Category
+            <select name="category">
+              <option value="Other">Other</option>
+              <option value="Produce">Produce</option>
+              <option value="Dairy">Dairy</option>
+              <option value="Meat">Meat & Seafood</option>
+              <option value="Grains">Grains & Pasta</option>
+              <option value="Canned">Canned Goods</option>
+              <option value="Frozen">Frozen</option>
+              <option value="Spices">Spices & Condiments</option>
+              <option value="Snacks">Snacks</option>
+              <option value="Beverages">Beverages</option>
+            </select>
+          </label>
+
+          <button type="submit" class="btn w-full">Add Item</button>
+        </form>
+
+        <div style="margin-top:20px;padding:14px;background:rgba(100,150,255,0.1);border:1px solid rgba(100,150,255,0.2);border-radius:10px;">
+          <h3 style="margin:0 0 8px;font-size:0.95rem;">💡 How it works</h3>
+          <p class="muted" style="margin:0;font-size:0.85rem;line-height:1.5;">
+            Items in your pantry are automatically subtracted from your grocery list. Only ingredients you need to buy will appear.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
