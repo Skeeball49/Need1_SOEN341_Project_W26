@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= recipe ? "Edit" : "New" %> Recipe — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <% const emailParam = (typeof user !== 'undefined' && user) ? '?email=' + encodeURIComponent(user.email) : ''; %>
+  <% const userEmail  = (typeof user !== 'undefined' && user) ? user.email : ''; %>
+
+  <main class="rf-main">
+
+    <div class="rf-page-header">
+      <h1 class="big-title"><%= recipe ? "Edit Recipe" : "Add a Recipe" %></h1>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert-error" style="margin-bottom:20px"><%= error %></div>
+    <% } %>
+
+    <div class="rf-layout">
+
+      <!-- ── LEFT: Form ── -->
+      <div class="rf-form-col">
+        <form method="POST"
+          action="<%= recipe ? ('/recipes/' + recipe.id) : '/recipes' %>"
+          id="rf-form">
+
+          <input type="hidden" name="email" value="<%= userEmail %>">
+          <!-- Ingredient list — synced from chips + custom input -->
+          <textarea name="ingredients" id="rf-ingredients-raw" style="display:none" required></textarea>
+
+          <!-- Ingredient chips section -->
+          <div class="rf-ingredient-section">
+            <div class="rf-ing-label">Tap ingredients — watch them fall in</div>
+
+            <!-- Category tabs -->
+            <div class="rf-cat-tabs" id="rf-cat-tabs">
+              <button type="button" class="rf-cat-tab active" data-cat="popular">Popular</button>
+              <button type="button" class="rf-cat-tab" data-cat="vegetables">Vegetables</button>
+              <button type="button" class="rf-cat-tab" data-cat="proteins">Proteins</button>
+              <button type="button" class="rf-cat-tab" data-cat="grains">Grains</button>
+              <button type="button" class="rf-cat-tab" data-cat="dairy">Dairy</button>
+              <button type="button" class="rf-cat-tab" data-cat="fruits">Fruits</button>
+              <button type="button" class="rf-cat-tab" data-cat="spices">Spices</button>
+            </div>
+
+            <!-- Chips grid -->
+            <div class="rf-chips-grid" id="rf-chips-grid"></div>
+
+            <!-- Custom ingredient -->
+            <div class="rf-custom-row">
+              <input type="text" id="rf-custom-input" class="rf-custom-input"
+                placeholder="Or type any ingredient…">
+              <button type="button" id="rf-custom-add" class="rf-custom-add-btn">Add</button>
+            </div>
+          </div>
+
+          <!-- Always-visible fields -->
+          <div class="rf-fields">
+            <div class="rf-field-group rf-field-full">
+              <label class="rf-label">Recipe name</label>
+              <input class="rf-input" type="text" name="title" required
+                value="<%= recipe ? recipe.title : '' %>"
+                placeholder="e.g. Grandma's minestrone">
+            </div>
+            <div class="rf-field-group rf-field-full">
+              <label class="rf-label">Steps (one per line)</label>
+              <textarea class="rf-input rf-textarea" name="steps" rows="5" required
+                placeholder="Step 1: …&#10;Step 2: …"><%= recipe ? recipe.steps.join('\n') : '' %></textarea>
+            </div>
+          </div>
+
+          <!-- Tabbed meta fields -->
+          <div class="rf-meta-section">
+            <div class="rf-meta-tabs-row">
+              <div class="rf-meta-tabs">
+                <button type="button" class="rf-meta-tab active" data-panel="details">Details</button>
+                <button type="button" class="rf-meta-tab" data-panel="nutrition">Nutrition</button>
+                <button type="button" class="rf-meta-tab" data-panel="cost">Cost & Tags</button>
+              </div>
+              <span class="rf-est-label" id="rf-est-label" style="display:none">✨ estimated</span>
+            </div>
+
+            <!-- Details tab -->
+            <div class="rf-meta-panel" id="rf-panel-details">
+              <div class="rf-fields-row">
+                <div class="rf-field-group">
+                  <label class="rf-label">Prep time (min)</label>
+                  <input class="rf-input" type="number" name="prepTime" id="rf-prepTime" min="0"
+                    value="<%= recipe ? recipe.prepTime : 0 %>">
+                </div>
+                <div class="rf-field-group">
+                  <label class="rf-label">Difficulty</label>
+                  <select class="rf-input" name="difficulty" id="rf-difficulty">
+                    <% const d = recipe ? recipe.difficulty : 'Easy'; %>
+                    <option value="Easy"   <%= d==='Easy'  ?'selected':'' %>>Easy</option>
+                    <option value="Medium" <%= d==='Medium'?'selected':'' %>>Medium</option>
+                    <option value="Hard"   <%= d==='Hard'  ?'selected':'' %>>Hard</option>
+                  </select>
+                </div>
+                <div class="rf-field-group">
+                  <label class="rf-label">Category</label>
+                  <select class="rf-input" name="category" id="rf-category">
+                    <% const cat = recipe ? recipe.category : 'Main Course';
+                       ['Main Course','Breakfast','Lunch','Dinner','Snack','Dessert','Side Dish','Appetizer'].forEach(c => { %>
+                      <option value="<%= c %>" <%= cat===c?'selected':'' %>><%= c %></option>
+                    <% }) %>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nutrition tab -->
+            <div class="rf-meta-panel" id="rf-panel-nutrition" style="display:none">
+              <div class="rf-nutrition-grid">
+                <div class="rf-field-group">
+                  <label class="rf-label rf-label-sm">Calories</label>
+                  <input class="rf-input" type="number" name="calories" id="rf-calories" min="0"
+                    value="<%= recipe ? recipe.calories : 0 %>">
+                </div>
+                <div class="rf-field-group">
+                  <label class="rf-label rf-label-sm">Protein (g)</label>
+                  <input class="rf-input" type="number" name="protein" id="rf-protein" min="0" step="0.1"
+                    value="<%= recipe ? recipe.protein : 0 %>">
+                </div>
+                <div class="rf-field-group">
+                  <label class="rf-label rf-label-sm">Carbs (g)</label>
+                  <input class="rf-input" type="number" name="carbs" id="rf-carbs" min="0" step="0.1"
+                    value="<%= recipe ? recipe.carbs : 0 %>">
+                </div>
+                <div class="rf-field-group">
+                  <label class="rf-label rf-label-sm">Fat (g)</label>
+                  <input class="rf-input" type="number" name="fat" id="rf-fat" min="0" step="0.1"
+                    value="<%= recipe ? recipe.fat : 0 %>">
+                </div>
+                <div class="rf-field-group">
+                  <label class="rf-label rf-label-sm">Servings</label>
+                  <input class="rf-input" type="number" name="servings" id="rf-servings" min="1"
+                    value="<%= recipe ? recipe.servings : 4 %>">
+                </div>
+              </div>
+            </div>
+
+            <!-- Cost & Tags tab -->
+            <div class="rf-meta-panel" id="rf-panel-cost" style="display:none">
+              <div class="rf-fields-row">
+                <div class="rf-field-group">
+                  <label class="rf-label">Cost ($)</label>
+                  <input class="rf-input" type="number" name="cost" id="rf-cost" min="0" step="0.01"
+                    value="<%= recipe ? recipe.cost : 0 %>">
+                </div>
+                <div class="rf-field-group" style="flex:2">
+                  <label class="rf-label">Dietary tags</label>
+                  <input class="rf-input" type="text" name="tags" id="rf-tags"
+                    value="<%= recipe && recipe.tags ? recipe.tags.join(', ') : '' %>"
+                    placeholder="e.g. vegan, gluten-free">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rf-form-actions">
+            <button type="submit" class="btn"><%= recipe ? "Save Changes" : "Publish Recipe 🥕" %></button>
+            <a href="/recipes<%= emailParam %>" class="btn btn-secondary">Cancel</a>
+          </div>
+
+        </form>
+      </div>
+
+      </div>
+    </div>
+  </main>
+</body>
+</html>
