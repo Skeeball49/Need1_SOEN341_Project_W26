@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Budget — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="section">
+    <div style="padding:0 24px 20px">
+      <div class="eyebrow">Week of <%= weekStart %></div>
+      <div class="medium-title">Budget</div>
+    </div>
+
+    <div style="padding:0 24px">
+      
+      <!-- Budget Overview -->
+      <div>
+        <!-- Current Week -->
+        <div class="split-card" style="margin-bottom:16px;">
+          <h2 style="margin:0 0 16px;">This Week</h2>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+            <div class="feature-card" style="text-align:center;">
+              <h3 style="font-size:1.8rem;margin:0 0 4px;">$<%= plannedCost.toFixed(2) %></h3>
+              <p class="muted" style="margin:0;font-size:0.85rem;">Planned Cost</p>
+            </div>
+            <div class="feature-card" style="text-align:center;">
+              <h3 style="font-size:1.8rem;margin:0 0 4px;">$<%= budgetEntry.actual_spent.toFixed(2) %></h3>
+              <p class="muted" style="margin:0;font-size:0.85rem;">Actual Spent</p>
+            </div>
+            <div class="feature-card" style="text-align:center;">
+              <% const remaining = weeklyBudgetGoal - budgetEntry.actual_spent; %>
+              <h3 style="font-size:1.8rem;margin:0 0 4px;color:<%= remaining >= 0 ? '#51cf66' : '#ff6b6b' %>;">$<%= Math.abs(remaining).toFixed(2) %></h3>
+              <p class="muted" style="margin:0;font-size:0.85rem;"><%= remaining >= 0 ? 'Remaining' : 'Over Budget' %></p>
+            </div>
+          </div>
+
+          <form action="/budget/update" method="POST" class="form">
+            <input type="hidden" name="email" value="<%= user.email %>">
+            
+            <label>
+              Actual Amount Spent ($)
+              <input type="number" name="actual_spent" value="<%= budgetEntry.actual_spent %>" min="0" step="0.01" placeholder="0.00">
+            </label>
+
+            <label>
+              Notes (optional)
+              <textarea name="notes" rows="2" placeholder="e.g., Bought extra snacks, used coupons..."><%= budgetEntry.notes || '' %></textarea>
+            </label>
+
+            <button type="submit" class="btn w-full">Update Spending</button>
+          </form>
+        </div>
+
+        <!-- Spending History -->
+        <% if (history && history.length > 0) { %>
+          <div class="split-card">
+            <h2 style="margin:0 0 16px;">Spending History</h2>
+            <div style="display:grid;gap:8px;">
+              <% history.forEach(week => { %>
+                <div style="padding:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:8px;">
+                  <div style="display:grid;grid-template-columns:120px 1fr auto;gap:12px;align-items:center;">
+                    <div class="muted" style="font-size:0.85rem;"><%= new Date(week.week_start).toLocaleDateString() %></div>
+                    <div style="display:flex;gap:16px;font-size:0.9rem;">
+                      <span><span class="muted">Budget:</span> $<%= week.planned_budget.toFixed(2) %></span>
+                      <span><span class="muted">Spent:</span> $<%= week.actual_spent.toFixed(2) %></span>
+                    </div>
+                    <% const weekDiff = week.planned_budget - week.actual_spent; %>
+                    <div style="font-weight:600;color:<%= weekDiff >= 0 ? '#51cf66' : '#ff6b6b' %>;">
+                      <%= weekDiff >= 0 ? '-' : '+' %>$<%= Math.abs(weekDiff).toFixed(2) %>
+                    </div>
+                  </div>
+                  <% if (week.notes) { %>
+                    <div class="muted" style="font-size:0.8rem;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.05);">
+                      <%= week.notes %>
+                    </div>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Budget Insights -->
+      <div>
+        <div class="split-card" style="margin-bottom:12px;">
+          <h2 style="margin:0 0 16px;">Budget Goal</h2>
+          <div style="text-align:center;padding:16px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:12px;">
+            <div style="font-size:2.5rem;font-weight:700;margin-bottom:4px;">$<%= weeklyBudgetGoal.toFixed(2) %></div>
+            <div class="muted" style="font-size:0.85rem;">Weekly Budget</div>
+          </div>
+          <a class="btn w-full" href="/nutrition?email=<%= encodeURIComponent(user.email) %>" style="text-align:center;">
+            Update in Goals
+          </a>
+        </div>
+
+        <% if (history && history.length > 1) { %>
+          <div class="split-card">
+            <h2 style="margin:0 0 12px;">Insights</h2>
+            <% 
+              const totalSpent = history.reduce((sum, w) => sum + Number(w.actual_spent), 0);
+              const avgSpent = totalSpent / history.length;
+              const totalBudget = history.reduce((sum, w) => sum + Number(w.planned_budget), 0);
+              const avgBudget = totalBudget / history.length;
+            %>
+            <div style="display:grid;gap:10px;font-size:0.9rem;">
+              <div class="feature-card">
+                <div class="muted" style="font-size:0.8rem;margin-bottom:4px;">Avg Weekly Spending</div>
+                <div style="font-size:1.3rem;font-weight:600;">$<%= avgSpent.toFixed(2) %></div>
+              </div>
+              <div class="feature-card">
+                <div class="muted" style="font-size:0.8rem;margin-bottom:4px;">Total (Last <%= history.length %> weeks)</div>
+                <div style="font-size:1.3rem;font-weight:600;">$<%= totalSpent.toFixed(2) %></div>
+              </div>
+              <% const savingsRate = avgBudget > 0 ? ((avgBudget - avgSpent) / avgBudget * 100) : 0; %>
+              <div class="feature-card">
+                <div class="muted" style="font-size:0.8rem;margin-bottom:4px;">Avg Savings Rate</div>
+                <div style="font-size:1.3rem;font-weight:600;color:<%= savingsRate >= 0 ? '#51cf66' : '#ff6b6b' %>;">
+                  <%= savingsRate.toFixed(0) %>%
+                </div>
+              </div>
+            </div>
+          </div>
+        <% } %>
+
+        <div style="margin-top:12px;padding:12px;background:rgba(100,150,255,0.1);border:1px solid rgba(100,150,255,0.2);border-radius:8px;">
+          <h3 style="margin:0 0 6px;font-size:0.9rem;">💡 Save Money</h3>
+          <p class="muted" style="margin:0;font-size:0.8rem;line-height:1.4;">
+            Use pantry items first, plan with cheaper recipes, and buy in bulk when possible.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
