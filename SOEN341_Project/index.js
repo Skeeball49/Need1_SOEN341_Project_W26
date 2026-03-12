@@ -545,3 +545,170 @@ app.post("/pantry/update", async (req, res) => {
   res.redirect(`/pantry?email=${encodeURIComponent(email)}&success=Quantity+updated`);
 });
 
+// ---- Recipe Recommendations ----
+
+app.get("/recommendations", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.redirect("/login");
+
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+
+  // Get user's pantry items
+  const { data: pantryItems } = await supabase
+    .from("pantry_items")
+    .select("*")
+    .eq("user_email", email);
+
+  const pantryIngredients = (pantryItems || []).map(item => item.ingredient_name.toLowerCase());
+
+  // Get all recipes
+  const { data: allRecipes } = await supabase.from("recipes").select("*");
+
+  // Calculate match percentage for each recipe
+  const recipesWithMatch = (allRecipes || []).map(recipe => {
+    const recipeIngredients = (recipe.ingredients || []).map(ing => {
+      const match = ing.trim().match(/^(\d+(?:\.\d+)?)\s+(.+)$/);
+      return match ? match[2].toLowerCase().trim() : ing.toLowerCase().trim();
+    });
+
+    const matchedIngredients = recipeIngredients.filter(ing => 
+      pantryIngredients.some(pantryIng => ing.includes(pantryIng) || pantryIng.includes(ing))
+    );
+
+    const matchPercentage = recipeIngredients.length > 0 
+      ? Math.round((matchedIngredients.length / recipeIngredients.length) * 100)
+      : 0;
+
+    return {
+      ...recipe,
+      matchPercentage,
+      matchedCount: matchedIngredients.length,
+      totalIngredients: recipeIngredients.length,
+      missingCount: recipeIngredients.length - matchedIngredients.length
+    };
+  });
+
+  // Sort by match percentage (highest first)
+  const recommendations = recipesWithMatch
+    .filter(r => r.matchPercentage > 0)
+    .sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+  res.render("recommendations", { user, recommendations, pantryCount: pantryIngredients.length });
+});
+
+// ---- Meal Plan Templates ----
+
+app.get("/templates", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.redirect("/login");
+
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+
+  // Get user's templates and public templates
+  const { data: templates } = await supabase
+    .from("meal_plan_templates")
+    .select("*")
+    .or(`created_by.eq.${email},is_public.eq.true`)
+    .order("created_date", { ascending: false });
+
+  res.render("templates", { user, templates: templates || [] });
+});
+
+app.post("/templates/save", async (req, res) => {
+  const { email, template_name, description, category, is_public } = req.body;
+  if (!email || !template_name) {
+    return res.redirect(`/templates?email=${encodeURIComponent(email)}&error=Template+name+required`);
+  }
+
+  const weekStart = getWeekStart();
+
+  // Get current week's meal plan
+  const { data: planEntries } = await supabase
+    .from("meal_plans")
+    .select("*")
+    .eq("user_email", email)
+    .eq("week_start", weekStart);
+
+  if (!planEntries || planEntries.length === 0) {
+    return res.redirect(`/templates?email=${encodeURIComponent(email)}&error=No+meals+planned+this+week`);
+  }
+
+  // Create template
+  const { data: template } = await supabase
+    .from("meal_plan_templates")
+    .insert({
+      template_name: template_name.trim(),
+      description: description || "",
+      created_by: email,
+      is_public: is_public === "on",
+      category: category || "Custom"
+    })
+    .select()
+    .single();
+
+  // Add template entries
+  const entries = planEntries.map(entry => ({
+    template_id: template.id,
+    day: entry.day,
+    meal_type: entry.meal_type,
+    recipe_id: entry.recipe_id,
+    recipe_title: entry.recipe_title
+  }));
+
+  await supabase.from("template_entries").insert(entries);
+
+  res.redirect(`/templates?email=${encodeURIComponent(email)}&success=Template+saved`);
+});
+
+app.post("/templates/load", async (req, res) => {
+  const { email, template_id } = req.body;
+  if (!email || !template_id) {
+    return res.redirect(`/planner?email=${encodeURIComponent(email)}&error=Invalid+template`);
+  }
+
+  const weekStart = getWeekStart();
+
+  // Get template entries
+  const { data: entries } = await supabase
+    .from("template_entries")
+    .select("*")
+    .eq("template_id", template_id);
+
+  if (!entries || entries.length === 0) {
+    return res.redirect(`/planner?email=${encodeURIComponent(email)}&error=Template+is+empty`);
+  }
+
+  // Clear current week's plan
+  await supabase
+    .from("meal_plans")
+    .delete()
+    .eq("user_email", email)
+    .eq("week_start", weekStart);
+
+  // Load template into current week
+  const newEntries = entries.map(entry => ({
+    user_email: email,
+    week_start: weekStart,
+    day: entry.day,
+    meal_type: entry.meal_type,
+    recipe_id: entry.recipe_id,
+    recipe_title: entry.recipe_title
+  }));
+
+  await supabase.from("meal_plans").insert(newEntries);
+
+  res.redirect(`/planner?email=${encodeURIComponent(email)}&success=Template+loaded`);
+});
+
+app.post("/templates/delete", async (req, res) => {
+  const { email, template_id } = req.body;
+  await supabase
+    .from("meal_plan_templates")
+    .delete()
+    .eq("id", template_id)
+    .eq("created_by", email);
+  res.redirect(`/templates?email=${encodeURIComponent(email)}&success=Template+deleted`);
+});
+
