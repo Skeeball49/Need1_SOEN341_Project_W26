@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recommendations — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="section">
+    <div style="padding:0 24px 20px">
+      <div class="eyebrow"><%= pantryCount %> pantry items</div>
+      <div class="medium-title">What you can make</div>
+    </div>
+
+    <% if (recommendations.length === 0) { %>
+      <div style="padding:0 24px">
+        <div class="split-card" style="text-align:center;padding:60px 24px;">
+          <p style="font-size:2.5rem;margin:0 0 10px;">🔍</p>
+          <h2 style="margin:0 0 8px;font-size:20px">No matches found</h2>
+          <p class="muted">Add more ingredients to your pantry or browse all recipes.</p>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;">
+            <a class="btn" href="/pantry?email=<%= encodeURIComponent(user.email) %>">Add Pantry Items</a>
+            <a class="btn btn-secondary" href="/recipes">Browse Recipes</a>
+          </div>
+        </div>
+      </div>
+    <% } else { %>
+      <div style="padding:0 24px">
+        <div class="rec-list">
+          <% recommendations.forEach(recipe => { %>
+            <div class="ri">
+              <div class="ri-top">
+                <div>
+                  <div class="ri-name"><%= recipe.title %></div>
+                  <div class="ri-sub">
+                    <%= recipe.matchedCount %> of <%= recipe.totalIngredients %> ingredients
+                    <% if (recipe.missingCount > 0) { %>
+                      · missing: <%= recipe.missingCount %>
+                    <% } %>
+                  </div>
+                  <% if (recipe.matchPercentage >= 75) { %>
+                    <span class="ri-badge ri-h">Excellent match</span>
+                  <% } else if (recipe.matchPercentage >= 50) { %>
+                    <span class="ri-badge ri-m">Good match</span>
+                  <% } else { %>
+                    <span class="ri-badge ri-l">Partial match</span>
+                  <% } %>
+                </div>
+                <div>
+                  <% if (recipe.matchPercentage >= 75) { %>
+                    <div class="ri-pct" style="color:var(--green)"><%= recipe.matchPercentage %>%</div>
+                  <% } else if (recipe.matchPercentage >= 50) { %>
+                    <div class="ri-pct" style="color:var(--yellow)"><%= recipe.matchPercentage %>%</div>
+                  <% } else { %>
+                    <div class="ri-pct" style="color:var(--muted)"><%= recipe.matchPercentage %>%</div>
+                  <% } %>
+                </div>
+              </div>
+              <div class="ri-bar-bg">
+                <% if (recipe.matchPercentage >= 75) { %>
+                  <div class="ri-bar-fill" style="width:<%= recipe.matchPercentage %>%;background:var(--green)"></div>
+                <% } else if (recipe.matchPercentage >= 50) { %>
+                  <div class="ri-bar-fill" style="width:<%= recipe.matchPercentage %>%;background:var(--yellow)"></div>
+                <% } else { %>
+                  <div class="ri-bar-fill" style="width:<%= recipe.matchPercentage %>%;background:var(--border)"></div>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
