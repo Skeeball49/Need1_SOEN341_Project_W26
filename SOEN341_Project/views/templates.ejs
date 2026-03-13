@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Templates — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <main class="section">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:0 24px 20px">
+      <div class="medium-title">Templates</div>
+      <a class="btn btn-secondary" href="/planner?email=<%= encodeURIComponent(user.email) %>">
+        ← Planner
+      </a>
+    </div>
+
+    <div style="padding:0 24px">
+      
+      <!-- Templates List -->
+      <div class="split-card">
+        <h2 style="margin:0 0 16px;">Available Templates</h2>
+        
+        <% if (templates.length === 0) { %>
+          <div style="text-align:center;padding:40px 24px;background:rgba(255,255,255,0.02);border-radius:10px;">
+            <p style="font-size:2.5rem;margin:0 0 10px;">📋</p>
+            <h3 style="margin:0 0 8px 0;">No templates yet</h3>
+            <p class="muted">Plan your week and save it as a template to reuse later.</p>
+          </div>
+        <% } else { %>
+          <div style="display:grid;gap:10px;">
+            <% templates.forEach(template => { %>
+              <div style="padding:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;">
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                      <h3 style="margin:0;font-size:1.1rem;"><%= template.template_name %></h3>
+                      <% if (template.is_public) { %>
+                        <span class="chip" style="font-size:0.75rem;padding:2px 8px;">Public</span>
+                      <% } %>
+                      <span class="chip" style="font-size:0.75rem;padding:2px 8px;background:rgba(100,150,255,0.2);"><%= template.category %></span>
+                    </div>
+                    <% if (template.description) { %>
+                      <p class="muted" style="margin:4px 0 8px;font-size:0.85rem;"><%= template.description %></p>
+                    <% } %>
+                    <div class="muted" style="font-size:0.8rem;">
+                      Created <%= new Date(template.created_date).toLocaleDateString() %>
+                      <% if (template.created_by !== user.email) { %>
+                        by <%= template.created_by %>
+                      <% } %>
+                    </div>
+                  </div>
+                  
+                  <div style="display:flex;gap:6px;">
+                    <form action="/templates/load" method="POST" style="margin:0;">
+                      <input type="hidden" name="email" value="<%= user.email %>">
+                      <input type="hidden" name="template_id" value="<%= template.id %>">
+                      <button type="submit" class="btn" style="padding:6px 12px;font-size:0.85rem;">Load</button>
+                    </form>
+                    <% if (template.created_by === user.email) { %>
+                      <form action="/templates/delete" method="POST" style="margin:0;">
+                        <input type="hidden" name="email" value="<%= user.email %>">
+                        <input type="hidden" name="template_id" value="<%= template.id %>">
+                        <button type="submit" class="btn" style="padding:6px 12px;font-size:0.85rem;background:rgba(255,100,100,0.15);border:1px solid rgba(255,100,100,0.3);" onclick="return confirm('Delete this template?')">Delete</button>
+                      </form>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Save Template Form -->
+      <div class="split-card">
+        <h2 style="margin:0 0 16px;">Save Current Week</h2>
+        <form action="/templates/save" method="POST" class="form">
+          <input type="hidden" name="email" value="<%= user.email %>">
+          
+          <label>
+            Template Name *
+            <input type="text" name="template_name" placeholder="e.g., Budget Week" required>
+          </label>
+
+          <label>
+            Description
+            <textarea name="description" rows="3" placeholder="Optional description..."></textarea>
+          </label>
+
+          <label>
+            Category
+            <select name="category">
+              <option value="Custom">Custom</option>
+              <option value="Budget">Budget Week</option>
+              <option value="High Protein">High Protein</option>
+              <option value="Quick Meals">Quick Meals</option>
+              <option value="Vegetarian">Vegetarian</option>
+              <option value="Meal Prep">Meal Prep</option>
+            </select>
+          </label>
+
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" name="is_public">
+            <span>Make this template public</span>
+          </label>
+
+          <button type="submit" class="btn w-full">Save Template</button>
+        </form>
+
+        <div style="margin-top:16px;padding:12px;background:rgba(100,150,255,0.1);border:1px solid rgba(100,150,255,0.2);border-radius:8px;">
+          <h3 style="margin:0 0 6px;font-size:0.9rem;">💡 How it works</h3>
+          <p class="muted" style="margin:0;font-size:0.8rem;line-height:1.4;">
+            Save your current week's meal plan as a template. Load it anytime to quickly fill your planner with the same meals.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>
