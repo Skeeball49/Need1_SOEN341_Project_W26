@@ -172,8 +172,388 @@
         </form>
       </div>
 
+      <!-- ── RIGHT: SVG Bowl/Drink Builder ── -->
+      <div class="rf-bowl-col">
+        <div class="rf-bowl-panel">
+
+          <!-- Header -->
+          <div class="rf-bowl-header">
+            <div class="rf-bowl-tabs">
+              <button type="button" class="rf-bowl-tab active" data-bowl="food">🍽 Bowl</button>
+              <button type="button" class="rf-bowl-tab" data-bowl="drink">🥤 Drink</button>
+            </div>
+            <span class="rf-bowl-count" id="rf-bowl-count">0 ingredients</span>
+            <button type="button" class="rf-bowl-clear" id="rf-bowl-clear">Clear</button>
+          </div>
+
+          <!-- Food Bowl SVG -->
+          <div id="rf-vis-food" class="rf-vis-wrap">
+            <svg class="rf-vis-svg" id="rf-food-svg" viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="fc"><path d="M155 52 Q153 142 250 168 Q347 142 345 52 Z"/></clipPath>
+                <pattern id="p-rice"       patternUnits="userSpaceOnUse" width="6"  height="6" ><rect width="6"  height="6"  fill="#f5f0e8"/><ellipse cx="1.5" cy="2"   rx="1.3" ry="0.5" fill="#c8bc90" transform="rotate(-20 1.5 2)"/><ellipse cx="4.5" cy="4.5" rx="1.3" ry="0.5" fill="#c8bc90" transform="rotate(15 4.5 4.5)"/></pattern>
+                <pattern id="p-pasta"      patternUnits="userSpaceOnUse" width="12" height="12"><rect width="12" height="12" fill="#f0d070"/><path d="M1 6 Q3 3 6 6 Q9 9 11 6" stroke="#a07008" stroke-width="1.4" fill="none"/><path d="M0 2 Q3 0 6 2 Q9 0 12 2" stroke="#a07008" stroke-width="1" fill="none"/></pattern>
+                <pattern id="p-noodles"    patternUnits="userSpaceOnUse" width="12" height="10"><rect width="12" height="10" fill="#f8e8c0"/><path d="M0 3 Q4 1 8 3 Q12 5 16 3" stroke="#c09840" stroke-width="1" fill="none"/><path d="M0 7 Q4 5 8 7 Q12 9 16 7" stroke="#c09840" stroke-width="1" fill="none"/></pattern>
+                <pattern id="p-bread"      patternUnits="userSpaceOnUse" width="8"  height="8" ><rect width="8"  height="8"  fill="#e8c880"/><circle cx="2" cy="3" r="1" fill="#c8a040" opacity="0.5"/><circle cx="5" cy="6" r="0.8" fill="#c8a040" opacity="0.5"/></pattern>
+                <pattern id="p-beans"      patternUnits="userSpaceOnUse" width="10" height="8" ><rect width="10" height="8"  fill="#b87048"/><ellipse cx="3" cy="4" rx="2" ry="1.5" fill="#8a4828" opacity="0.6"/><ellipse cx="7.5" cy="4" rx="2" ry="1.5" fill="#8a4828" opacity="0.6"/></pattern>
+                <pattern id="p-chicken"    patternUnits="userSpaceOnUse" width="8"  height="8" ><rect width="8"  height="8"  fill="#cc7838"/><path d="M1 1 Q4 3 7 1 Q5 4 7 7 Q4 5 1 7 Q3 4 1 1Z" fill="#884010" opacity="0.4"/></pattern>
+                <pattern id="p-beef"       patternUnits="userSpaceOnUse" width="8"  height="8" ><rect width="8"  height="8"  fill="#902820"/><path d="M0 0 L3 3 L0 6 M4 1 L7 4 L4 7" stroke="#601008" stroke-width="1" fill="none" opacity="0.5"/></pattern>
+                <pattern id="p-fish"       patternUnits="userSpaceOnUse" width="10" height="8" ><rect width="10" height="8"  fill="#7090c0"/><path d="M1 4 Q3 2 5 4 Q7 6 9 4" stroke="#4060a0" stroke-width="1" fill="none"/></pattern>
+                <pattern id="p-curry"      patternUnits="userSpaceOnUse" width="10" height="6" ><rect width="10" height="6"  fill="#d89020"/><path d="M0 3 Q2.5 1 5 3 Q7.5 5 10 3" stroke="#a06010" stroke-width="0.8" fill="none" opacity="0.6"/></pattern>
+                <pattern id="p-broth"      patternUnits="userSpaceOnUse" width="10" height="6" ><rect width="10" height="6"  fill="#c8a050"/><path d="M0 3 Q2.5 1.5 5 3 Q7.5 4.5 10 3" stroke="#a07828" stroke-width="0.8" fill="none" opacity="0.5"/></pattern>
+              </defs>
+              <g id="f-fills" clip-path="url(#fc)"></g>
+              <path d="M155 52 Q153 142 250 168 Q347 142 345 52 Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+              <ellipse cx="250" cy="52" rx="95" ry="18" fill="#1A1916" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+              <g id="f-labels"></g>
+              <g id="f-tops"></g>
+            </svg>
+          </div>
+
+          <!-- Drink Glass SVG -->
+          <div id="rf-vis-drink" class="rf-vis-wrap" style="display:none">
+            <svg class="rf-vis-svg" id="rf-drink-svg" viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="dc"><path d="M185 30 L175 185 Q250 200 325 185 L315 30 Z"/></clipPath>
+                <pattern id="d-apple"      patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#c8e870"/><circle cx="2" cy="3" r="1" fill="#a0c040" opacity="0.5"/><circle cx="6" cy="6" r="0.8" fill="#a0c040" opacity="0.4"/></pattern>
+                <pattern id="d-orange"     patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#f09030"/><circle cx="4" cy="4" r="2.5" fill="none" stroke="#d07010" stroke-width="0.5" opacity="0.5"/><line x1="4" y1="1.5" x2="4" y2="6.5" stroke="#d07010" stroke-width="0.4" opacity="0.4"/></pattern>
+                <pattern id="d-mango"      patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#f0b020"/><ellipse cx="4" cy="4" rx="2.5" ry="1.8" fill="#d08010" opacity="0.4"/></pattern>
+                <pattern id="d-berry"      patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#800080"/><circle cx="2" cy="3" r="1.5" fill="#500050" opacity="0.5"/><circle cx="6" cy="5" r="1.2" fill="#500050" opacity="0.5"/></pattern>
+                <pattern id="d-strawberry" patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#e03050"/><circle cx="2" cy="3" r="1" fill="#a01020" opacity="0.5"/><circle cx="6" cy="6" r="0.8" fill="#a01020" opacity="0.5"/></pattern>
+                <pattern id="d-watermelon" patternUnits="userSpaceOnUse" width="10" height="8"><rect width="10" height="8" fill="#e04060"/><line x1="1" y1="2" x2="2" y2="7" stroke="#900020" stroke-width="0.8" opacity="0.5"/><line x1="5" y1="1" x2="5" y2="7" stroke="#900020" stroke-width="0.8" opacity="0.5"/><line x1="8" y1="2" x2="8" y2="7" stroke="#900020" stroke-width="0.8" opacity="0.5"/></pattern>
+                <pattern id="d-pineapple"  patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#f0d040"/><path d="M1 2 L3 6 L5 2 L7 6" stroke="#b09010" stroke-width="0.8" fill="none" opacity="0.5"/></pattern>
+                <pattern id="d-banana"     patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#f0e040"/><path d="M1 6 Q4 2 7 6" stroke="#c0b010" stroke-width="1" fill="none" opacity="0.5"/></pattern>
+                <pattern id="d-lemon"      patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#f8e840"/><circle cx="4" cy="4" r="2.5" fill="none" stroke="#c8b820" stroke-width="0.5"/><line x1="4" y1="1.5" x2="4" y2="6.5" stroke="#c8b820" stroke-width="0.4"/></pattern>
+                <pattern id="d-spinach"    patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#209040"/><path d="M4 1 Q6 4 4 7 Q2 4 4 1Z" fill="#107020" opacity="0.5"/></pattern>
+                <pattern id="d-ginger"     patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#d0a850"/><path d="M1 4 Q2 2 4 4 Q6 6 7 4" stroke="#a07828" stroke-width="1" fill="none"/></pattern>
+                <pattern id="d-milk"       patternUnits="userSpaceOnUse" width="6" height="6"><rect width="6" height="6" fill="#f8f8f0"/><circle cx="2" cy="2" r="0.6" fill="#e0e0d8" opacity="0.6"/><circle cx="4.5" cy="4.5" r="0.5" fill="#e0e0d8" opacity="0.5"/></pattern>
+                <pattern id="d-yogurt"     patternUnits="userSpaceOnUse" width="6" height="6"><rect width="6" height="6" fill="#f0f0e8"/><ellipse cx="3" cy="3" rx="1.5" ry="0.8" fill="#d8d8c8" opacity="0.5"/></pattern>
+                <pattern id="d-coconut"    patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#f0f0e0"/><path d="M1 4 Q4 2 7 4" stroke="#c8c8a0" stroke-width="0.8" fill="none"/></pattern>
+                <pattern id="d-honey"      patternUnits="userSpaceOnUse" width="8" height="8"><rect width="8" height="8" fill="#f0a820"/><path d="M2 4 L4 2 L6 4 L4 6 Z" fill="#d08010" opacity="0.4"/></pattern>
+              </defs>
+              <path d="M185 30 L175 185 Q250 200 325 185 L315 30 Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+              <line x1="185" y1="30" x2="315" y2="30" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+              <rect x="262" y="10" width="5" height="80" rx="2" fill="#f5a060" stroke="#d07040" stroke-width="0.5"/>
+              <g id="d-fills" clip-path="url(#dc)"></g>
+              <path d="M185 30 L175 185 Q250 200 325 185 L315 30 Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+              <line x1="185" y1="30" x2="315" y2="30" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+              <g id="d-labels"></g>
+            </svg>
+            <!-- Drink ingredient mini-buttons -->
+            <div class="rf-drink-btns" id="rf-drink-btns"></div>
+          </div>
+
+          <div class="rf-bowl-hint" id="rf-bowl-hint">Tap ingredients to build your bowl</div>
+        </div>
       </div>
+
     </div>
   </main>
+
+  <script id="rf-existing-data" type="application/json"><%- JSON.stringify(recipe && recipe.ingredients ? recipe.ingredients : []) %></script>
+  <script>
+  (function() {
+
+    // ── Ingredient data by category ──
+    const CATS = {
+      popular: [
+        ['🥕','Carrot'],    ['🍅','Tomato'],    ['🌿','Herbs'],     ['🧅','Onion'],
+        ['🧄','Garlic'],    ['🍋','Lemon'],      ['🫒','Olive Oil'], ['🍝','Pasta'],
+        ['🥚','Eggs'],      ['🧂','Salt'],       ['🌶','Chilli'],    ['🥩','Chicken'],
+        ['🥦','Broccoli'],  ['🥔','Potato'],     ['🧀','Cheese'],    ['🍄','Mushroom'],
+      ],
+      vegetables: [
+        ['🥕','Carrot'],    ['🍅','Tomato'],     ['🧅','Onion'],     ['🧄','Garlic'],
+        ['🥦','Broccoli'],  ['🥬','Spinach'],    ['🫑','Pepper'],    ['🥔','Potato'],
+        ['🍄','Mushroom'],  ['🌽','Corn'],       ['🥒','Cucumber'],  ['🌿','Herbs'],
+        ['🧆','Eggplant'],  ['🥗','Lettuce'],
+      ],
+      proteins: [
+        ['🥚','Eggs'],      ['🥩','Chicken'],    ['🥩','Beef'],      ['🦐','Shrimp'],
+        ['🐟','Salmon'],    ['🫘','Beans'],      ['🫛','Tofu'],      ['🥜','Peanuts'],
+        ['🍗','Turkey'],    ['🥓','Bacon'],
+      ],
+      grains: [
+        ['🍝','Pasta'],     ['🍚','Rice'],       ['🍞','Bread'],     ['🌾','Flour'],
+        ['🍜','Noodles'],   ['🫓','Tortilla'],   ['🌾','Quinoa'],    ['🥣','Oats'],
+      ],
+      dairy: [
+        ['🧀','Cheese'],    ['🥛','Milk'],       ['🧈','Butter'],    ['🍦','Cream'],
+        ['🫙','Yogurt'],    ['🧀','Parmesan'],
+      ],
+      fruits: [
+        ['🍋','Lemon'],     ['🍎','Apple'],      ['🫒','Olive'],     ['🥑','Avocado'],
+        ['🍌','Banana'],    ['🍊','Orange'],     ['🍓','Strawberry'],['🍇','Grapes'],
+      ],
+      spices: [
+        ['🧂','Salt'],      ['🌶','Chilli'],     ['🫚','Oil'],       ['🍯','Honey'],
+        ['🌿','Basil'],     ['🧡','Paprika'],    ['🟤','Cumin'],     ['🤍','Sugar'],
+      ],
+    };
+
+    // ── State ──
+    const rawTA   = document.getElementById('rf-ingredients-raw');
+    let   ingList = [];   // [{name, emoji}]
+    let   count   = 0;
+    let   dcounts = {};   // drink ingredient id → count
+
+    // Pre-load when editing
+    const _existingData = document.getElementById('rf-existing-data');
+    if (_existingData) {
+      JSON.parse(_existingData.textContent).forEach(ing => {
+        const match = Object.values(CATS).flat().find(item => item[1].toLowerCase() === ing.toLowerCase().replace(/^\d+\s+/, ''));
+        addToList(ing, match ? match[0] : '🍽', true);
+      });
+    }
+
+    function addToList(name, emoji, silent) {
+      ingList.push({ name, emoji });
+      count++;
+      updateCount();
+      syncTextarea();
+      estimateAndFill();
+      if (!silent) drawFood();
+    }
+
+    function updateCount() {
+      const el = document.getElementById('rf-bowl-count');
+      if (el) el.textContent = count + ' ingredient' + (count !== 1 ? 's' : '');
+    }
+
+    function syncTextarea() {
+      rawTA.value = ingList.map(i => i.name).join('\n');
+    }
+
+    function clearBowl() {
+      ingList = []; count = 0; dcounts = {};
+      syncTextarea(); updateCount(); estimateAndFill();
+      clearSVG(); clearSVGDrink();
+      document.querySelectorAll('.rf-chip').forEach(c => {
+        c.classList.remove('has-items');
+        const b = c.querySelector('.rf-chip-count'); if (b) b.textContent = '0';
+      });
+      document.querySelectorAll('.rf-dring-btn').forEach(b => {
+        b.querySelector('.rf-dqty').style.display = 'none';
+        b.querySelector('.rf-dqty').textContent = '0';
+      });
+    }
+
+    // ── SVG helpers ──
+    function ns(t)  { return document.createElementNS('http://www.w3.org/2000/svg', t); }
+    function at(el,o){ Object.entries(o).forEach(([k,v]) => el.setAttribute(k, String(v))); return el; }
+
+    function clearSVG() {
+      ['f-fills','f-labels','f-tops'].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML=''; });
+    }
+    function clearSVGDrink() {
+      ['d-fills','d-labels'].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML=''; });
+    }
+
+    // ── Food bowl geometry ──
+    const BT=52,BB=168,BH=BB-BT,BL=155,BR=345,BCX=250;
+    const LL=50,RL=450,LLE=58,RLE=442;
+
+    // Layers (filled base ingredients)
+    const FOOD_LAYERS = [
+      {id:'rice',    label:'Rice',    emoji:'🍚', color:'#c8b870', pat:'p-rice',    base:0.28},
+      {id:'pasta',   label:'Pasta',   emoji:'🍝', color:'#d0a020', pat:'p-pasta',   base:0.25},
+      {id:'noodles', label:'Noodles', emoji:'🍜', color:'#e8c870', pat:'p-noodles', base:0.25},
+      {id:'bread',   label:'Bread',   emoji:'🫓', color:'#d4a840', pat:'p-bread',   base:0.20},
+      {id:'beans',   label:'Beans',   emoji:'🫘', color:'#b07048', pat:'p-beans',   base:0.22},
+      {id:'chicken', label:'Chicken', emoji:'🍗', color:'#cc7838', pat:'p-chicken', base:0.22},
+      {id:'beef',    label:'Beef',    emoji:'🥩', color:'#902820', pat:'p-beef',    base:0.22},
+      {id:'fish',    label:'Fish',    emoji:'🐟', color:'#7090c0', pat:'p-fish',    base:0.22},
+      {id:'curry',   label:'Sauce',   emoji:'🍛', color:'#d89020', pat:'p-curry',   base:0.20},
+      {id:'broth',   label:'Broth',   emoji:'🍲', color:'#c8a050', pat:'p-broth',   base:0.18},
+    ];
+    // Toppings (sit on top)
+    const FOOD_TOPS = [
+      {id:'tomato',  label:'Tomato',  emoji:'🍅', color:'#e84040'},
+      {id:'broc',    label:'Broccoli',emoji:'🥦', color:'#4a9030'},
+      {id:'onion',   label:'Onion',   emoji:'🧅', color:'#9060c0'},
+      {id:'egg',     label:'Egg',     emoji:'🥚', color:'#d09000'},
+      {id:'pepper',  label:'Pepper',  emoji:'🌶️', color:'#e03030'},
+      {id:'carrot',  label:'Carrot',  emoji:'🥕', color:'#e06020'},
+      {id:'spinach', label:'Spinach', emoji:'🥬', color:'#209040'},
+      {id:'corn',    label:'Corn',    emoji:'🌽', color:'#f0c000'},
+      {id:'mushroom',label:'Mushroom',emoji:'🍄', color:'#906040'},
+      {id:'avocado', label:'Avocado', emoji:'🥑', color:'#508030'},
+      {id:'garlic',  label:'Garlic',  emoji:'🧄', color:'#d0c890'},
+      {id:'potato',  label:'Potato',  emoji:'🥔', color:'#c8a060'},
+      {id:'chilli',  label:'Chilli',  emoji:'🫑', color:'#208040'},
+      {id:'lime',    label:'Lemon',   emoji:'🍋', color:'#90c020'},
+    ];
+    // Chip name → layer/top ID
+    const CHIP_LAYER = {
+      Rice:'rice', Pasta:'pasta', Noodles:'noodles', Oats:'rice', Quinoa:'rice',
+      Bread:'bread', Tortilla:'bread', Flour:'bread',
+      Beans:'beans', Tofu:'beans', Peanuts:'beans',
+      Chicken:'chicken', Turkey:'chicken',
+      Beef:'beef', Bacon:'beef',
+      Salmon:'fish', Shrimp:'fish',
+      'Olive Oil':'broth', Oil:'broth',
+    };
+    const CHIP_TOP = {
+      Tomato:'tomato', Broccoli:'broc', Onion:'onion', Eggs:'egg',
+      Pepper:'pepper', Carrot:'carrot', Spinach:'spinach', Corn:'corn',
+      Mushroom:'mushroom', Avocado:'avocado', Garlic:'garlic', Potato:'potato',
+      Chilli:'chilli', Lemon:'lime', Herbs:'garlic', Lettuce:'spinach',
+      Cucumber:'spinach', Eggplant:'onion',
+    };
+
+    function drawFood() {
+      const fF=document.getElementById('f-fills');
+      const fL=document.getElementById('f-labels');
+      const fT=document.getElementById('f-tops');
+      if (!fF) return;
+      fF.innerHTML=''; fL.innerHTML=''; fT.innerHTML='';
+
+      // Aggregate counts from ingList
+      const lC={}, tC={};
+      ingList.forEach(({name}) => {
+        const lid=CHIP_LAYER[name]; if(lid) lC[lid]=(lC[lid]||0)+1;
+        const tid=CHIP_TOP[name];   if(tid) tC[tid]=(tC[tid]||0)+1;
+      });
+
+      const aL=FOOD_LAYERS.filter(l=>lC[l.id]);
+      const aT=FOOD_TOPS.filter(t=>tC[t.id]);
+      if (!aL.length && !aT.length) return;
+
+      const topSlots=aT.reduce((s,t)=>s+tC[t.id],0);
+      const topRes  =topSlots>0?Math.min(0.38,topSlots*0.07+0.05):0;
+      const lSpace  =1-topRes;
+      const rawTot  =aL.reduce((s,l)=>s+l.base*lC[l.id],0)||1;
+
+      let curY=BB;
+      aL.forEach((ing,i)=>{
+        const cnt=lC[ing.id], frac=ing.base*cnt/rawTot;
+        const h=Math.max(frac*lSpace*BH,13), topY=curY-h, midY=topY+h/2;
+        const rect=ns('rect'); at(rect,{x:BL,y:topY,width:BR-BL,height:h+1,fill:`url(#${ing.pat})`}); fF.appendChild(rect);
+        if(i>0){const dl=ns('line');at(dl,{x1:BL,y1:curY,x2:BR,y2:curY,stroke:'rgba(255,255,255,0.08)','stroke-width':'0.7'});fL.appendChild(dl);}
+        const isR=i%2===0;
+        const eX=isR?BR:BL,mX=isR?BR+22:BL-22,leX=isR?RLE:LLE,lX=isR?RL:LL;
+        const lbl=cnt>1?`${ing.label} ×${cnt}`:ing.label;
+        const poly=ns('polyline');at(poly,{points:`${eX},${midY} ${mX},${midY} ${leX},${midY}`,stroke:ing.color,'stroke-width':'1',fill:'none'});fL.appendChild(poly);
+        const dot=ns('circle');at(dot,{cx:eX,cy:midY,r:'2.5',fill:ing.color});fL.appendChild(dot);
+        const ei=ns('text');at(ei,{x:lX,y:midY+1,'font-size':'12','text-anchor':isR?'start':'end','dominant-baseline':'middle',fill:'#F5F3EE'});ei.textContent=ing.emoji;fL.appendChild(ei);
+        const tx=ns('text');at(tx,{x:isR?lX+17:lX-17,y:midY+1,'font-size':'9',fill:'#AAA89F','text-anchor':isR?'start':'end','dominant-baseline':'middle'});tx.textContent=lbl;fL.appendChild(tx);
+        curY=topY;
+      });
+
+      if(!aT.length) return;
+      // If no base layers, surface is near bowl bottom so tops stay inside
+      const surfY=aL.length ? curY : BB-50, cols=5,cW=27,rH=28;
+      // One slot per unique topping, count shown in label
+      const allT=aT;
+      const usedY={l:[],r:[]};
+      function freeY(side,pref){let y=pref,a=0;while(usedY[side].some(u=>Math.abs(u-y)<11)&&a<20){y-=12;a++;}usedY[side].push(y);return y;}
+      allT.forEach((ing,idx)=>{
+        const col=idx%cols,row=Math.floor(idx/cols);
+        const cir=Math.min(allT.length-row*cols,cols);
+        const sX=BCX-(cir-1)*cW/2,x=sX+col*cW,ey=surfY+16+row*rH;
+        if(ey>BB-6) return;
+        const cnt2=tC[ing.id];
+        const em=ns('text');at(em,{x,y:ey,'font-size':'15','text-anchor':'middle','dominant-baseline':'middle'});em.textContent=ing.emoji;fT.appendChild(em);
+        const goR=x>=BCX,side=goR?'r':'l';
+        const eX2=goR?BR:BL,leX2=goR?RLE:LLE,lX2=goR?RL:LL;
+        const ly=freeY(side,ey);
+        const p2=ns('polyline');at(p2,{points:`${x},${ey-8} ${x},${ly} ${eX2},${ly} ${leX2},${ly}`,stroke:ing.color,'stroke-width':'0.8',fill:'none'});fT.appendChild(p2);
+        const d2=ns('circle');at(d2,{cx:x,cy:ey-8,r:'2',fill:ing.color});fT.appendChild(d2);
+        const ei2=ns('text');at(ei2,{x:lX2,y:ly+1,'font-size':'12','text-anchor':goR?'start':'end','dominant-baseline':'middle',fill:'#F5F3EE'});ei2.textContent=ing.emoji;fT.appendChild(ei2);
+        const lb2=ns('text');at(lb2,{x:goR?lX2+17:lX2-17,y:ly+1,'font-size':'9',fill:'#AAA89F','text-anchor':goR?'start':'end','dominant-baseline':'middle'});lb2.textContent=cnt2>1?`${ing.label} ×${cnt2}`:ing.label;fT.appendChild(lb2);
+      });
+    }
+
+    // ── Drink glass geometry ──
+    const DL=185,DR=315,DT=30,DB=195,DH=DB-DT;
+
+    const DRINK_INGS = [
+      {id:'apple',     label:'Apple',        emoji:'🍎',color:'#90c030',pat:'d-apple',     base:0.22,group:'Fruits'},
+      {id:'orange',    label:'Orange',       emoji:'🍊',color:'#f09030',pat:'d-orange',    base:0.22,group:'Fruits'},
+      {id:'mango',     label:'Mango',        emoji:'🥭',color:'#f0b020',pat:'d-mango',     base:0.22,group:'Fruits'},
+      {id:'berry',     label:'Berry',        emoji:'🫐',color:'#800080',pat:'d-berry',     base:0.20,group:'Fruits'},
+      {id:'strawberry',label:'Strawberry',   emoji:'🍓',color:'#e03050',pat:'d-strawberry',base:0.20,group:'Fruits'},
+      {id:'watermelon',label:'Watermelon',   emoji:'🍉',color:'#e04060',pat:'d-watermelon',base:0.22,group:'Fruits'},
+      {id:'pineapple', label:'Pineapple',    emoji:'🍍',color:'#d0c020',pat:'d-pineapple', base:0.20,group:'Fruits'},
+      {id:'banana',    label:'Banana',       emoji:'🍌',color:'#f0e040',pat:'d-banana',    base:0.18,group:'Fruits'},
+      {id:'lemon',     label:'Lemon',        emoji:'🍋',color:'#f0d820',pat:'d-lemon',     base:0.15,group:'Fruits'},
+      {id:'spinach_d', label:'Spinach',      emoji:'🥬',color:'#209040',pat:'d-spinach',   base:0.15,group:'Greens'},
+      {id:'ginger',    label:'Ginger',       emoji:'🫚',color:'#d0a850',pat:'d-ginger',    base:0.12,group:'Greens'},
+      {id:'milk',      label:'Milk',         emoji:'🥛',color:'#dcdcd4',pat:'d-milk',      base:0.22,group:'Base'},
+      {id:'yogurt',    label:'Yogurt',       emoji:'🍦',color:'#e8e4d8',pat:'d-yogurt',    base:0.20,group:'Base'},
+      {id:'coconut',   label:'Coconut milk', emoji:'🥥',color:'#dcdcc8',pat:'d-coconut',   base:0.20,group:'Base'},
+      {id:'honey',     label:'Honey',        emoji:'🍯',color:'#f0a820',pat:'d-honey',     base:0.10,group:'Base'},
+    ];
+
+    function drawDrink() {
+      const dF=document.getElementById('d-fills');
+      const dL=document.getElementById('d-labels');
+      if (!dF) return;
+      dF.innerHTML=''; dL.innerHTML='';
+      const active=DRINK_INGS.filter(i=>dcounts[i.id]>0);
+      if (!active.length) return;
+      const rawT=active.reduce((s,i)=>s+i.base*dcounts[i.id],0)||1;
+      let curY=DB;
+      active.forEach((ing,i)=>{
+        const cnt=dcounts[ing.id], frac=ing.base*cnt/rawT;
+        const h=Math.max(frac*DH,12), topY=curY-h, midY=topY+h/2;
+        const rect=ns('rect');at(rect,{x:DL,y:topY,width:DR-DL,height:h+1,fill:`url(#${ing.pat})`});dF.appendChild(rect);
+        if(i>0){const dl=ns('line');at(dl,{x1:DL,y1:curY,x2:DR,y2:curY,stroke:'rgba(255,255,255,0.08)','stroke-width':'0.7'});dL.appendChild(dl);}
+        const isR=i%2===0;
+        const eX=isR?DR:DL,mX=isR?DR+22:DL-22,leX=isR?RLE:LLE,lX=isR?RL:LL;
+        const lbl=cnt>1?`${ing.label} ×${cnt}`:ing.label;
+        const poly=ns('polyline');at(poly,{points:`${eX},${midY} ${mX},${midY} ${leX},${midY}`,stroke:ing.color,'stroke-width':'1',fill:'none'});dL.appendChild(poly);
+        const dot=ns('circle');at(dot,{cx:eX,cy:midY,r:'2.5',fill:ing.color});dL.appendChild(dot);
+        const ei=ns('text');at(ei,{x:lX,y:midY+1,'font-size':'12','text-anchor':isR?'start':'end','dominant-baseline':'middle',fill:'#F5F3EE'});ei.textContent=ing.emoji;dL.appendChild(ei);
+        const tx=ns('text');at(tx,{x:isR?lX+17:lX-17,y:midY+1,'font-size':'9',fill:'#AAA89F','text-anchor':isR?'start':'end','dominant-baseline':'middle'});tx.textContent=lbl;dL.appendChild(tx);
+        curY=topY;
+      });
+    }
+
+    // ── Drink ingredient mini-buttons ──
+    const dBtnContainer = document.getElementById('rf-drink-btns');
+    if (dBtnContainer) {
+      let lastGroup = '';
+      DRINK_INGS.forEach(ing => {
+        if (ing.group !== lastGroup) {
+          const sec = document.createElement('div');
+          sec.className = 'rf-drink-sec';
+          sec.textContent = ing.group;
+          dBtnContainer.appendChild(sec);
+          lastGroup = ing.group;
+        }
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'rf-dring-btn';
+        b.id = 'drbtn-' + ing.id;
+        const qty = document.createElement('span');
+        qty.className = 'rf-dqty'; qty.textContent = '0'; qty.style.display = 'none';
+        b.innerHTML = `<span>${ing.emoji}</span>${ing.label}`;
+        b.appendChild(qty);
+        b.addEventListener('click', () => {
+          dcounts[ing.id] = (dcounts[ing.id] || 0) + 1;
+          addToList(ing.label, ing.emoji, true);
+          qty.textContent = dcounts[ing.id]; qty.style.display = 'inline';
+          drawDrink();
+        });
+        dBtnContainer.appendChild(b);
+      });
+    }
+
+    // ── Bowl/Drink tab switching ──
+    document.querySelectorAll('.rf-bowl-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        if (window.mmCarrot) window.mmCarrot();
+        document.querySelectorAll('.rf-bowl-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const isDrink = tab.dataset.bowl === 'drink';
+        document.getElementById('rf-vis-food').style.display  = isDrink ? 'none' : '';
+        document.getElementById('rf-vis-drink').style.display = isDrink ? '' : 'none';
+        document.getElementById('rf-bowl-hint').textContent   = isDrink ? 'Add ingredients to fill your glass' : 'Tap ingredients to build your bowl';
+      });
+    });
+
+
+  </script>
 </body>
 </html>
