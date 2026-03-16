@@ -712,3 +712,99 @@ app.post("/templates/delete", async (req, res) => {
   res.redirect(`/templates?email=${encodeURIComponent(email)}&success=Template+deleted`);
 });
 
+// ---- Nutritional Tracking ----
+
+app.get("/nutrition", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.redirect("/login");
+
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+
+  const weekStart = getWeekStart();
+
+  // Get user's goals
+  let { data: goals } = await supabase
+    .from("user_goals")
+    .select("*")
+    .eq("user_email", email)
+    .single();
+
+  if (!goals) {
+    // Create default goals
+    await supabase.from("user_goals").insert({
+      user_email: email,
+      daily_calories: 2000,
+      daily_protein: 50,
+      daily_carbs: 250,
+      daily_fat: 70,
+      weekly_budget: 100
+    });
+    goals = { daily_calories: 2000, daily_protein: 50, daily_carbs: 250, daily_fat: 70, weekly_budget: 100 };
+  }
+
+  // Get this week's meal plan
+  const { data: planEntries } = await supabase
+    .from("meal_plans")
+    .select("recipe_id, day, meal_type")
+    .eq("user_email", email)
+    .eq("week_start", weekStart);
+
+  if (!planEntries || planEntries.length === 0) {
+    return res.render("nutrition", { user, goals, weeklyStats: null, dailyBreakdown: [], weekStart });
+  }
+
+  const recipeIds = [...new Set(planEntries.map(e => e.recipe_id))];
+  const { data: recipes } = await supabase.from("recipes").select("*").in("id", recipeIds);
+
+  const recipeMap = {};
+  for (const recipe of recipes || []) {
+    recipeMap[recipe.id] = recipe;
+  }
+
+  // Calculate daily breakdown
+  const dailyBreakdown = DAYS.map(day => {
+    const dayEntries = planEntries.filter(e => e.day === day);
+    let calories = 0, protein = 0, carbs = 0, fat = 0;
+
+    for (const entry of dayEntries) {
+      const recipe = recipeMap[entry.recipe_id];
+      if (recipe) {
+        calories += Number(recipe.calories || 0);
+        protein += Number(recipe.protein || 0);
+        carbs += Number(recipe.carbs || 0);
+        fat += Number(recipe.fat || 0);
+      }
+    }
+
+    return { day, calories, protein, carbs, fat };
+  });
+
+  // Calculate weekly totals
+  const weeklyStats = dailyBreakdown.reduce((acc, day) => ({
+    calories: acc.calories + day.calories,
+    protein: acc.protein + day.protein,
+    carbs: acc.carbs + day.carbs,
+    fat: acc.fat + day.fat
+  }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+
+  res.render("nutrition", { user, goals, weeklyStats, dailyBreakdown, weekStart });
+});
+
+app.post("/nutrition/goals", async (req, res) => {
+  const { email, daily_calories, daily_protein, daily_carbs, daily_fat, weekly_budget } = req.body;
+  
+  await supabase
+    .from("user_goals")
+    .upsert({
+      user_email: email,
+      daily_calories: Number(daily_calories || 2000),
+      daily_protein: Number(daily_protein || 50),
+      daily_carbs: Number(daily_carbs || 250),
+      daily_fat: Number(daily_fat || 70),
+      weekly_budget: Number(weekly_budget || 100)
+    }, { onConflict: "user_email" });
+
+  res.redirect(`/nutrition?email=${encodeURIComponent(email)}&success=Goals+updated`);
+});
+
