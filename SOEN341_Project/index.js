@@ -808,3 +808,207 @@ app.post("/nutrition/goals", async (req, res) => {
   res.redirect(`/nutrition?email=${encodeURIComponent(email)}&success=Goals+updated`);
 });
 
+// ---- Budget Tracking ----
+
+app.get("/budget", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.redirect("/login");
+
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+
+  const weekStart = getWeekStart();
+
+  // Get user's budget goal
+  let { data: goals } = await supabase
+    .from("user_goals")
+    .select("weekly_budget")
+    .eq("user_email", email)
+    .single();
+
+  const weeklyBudgetGoal = goals?.weekly_budget || 100;
+
+  // Get current week's planned cost
+  const { data: planEntries } = await supabase
+    .from("meal_plans")
+    .select("recipe_id")
+    .eq("user_email", email)
+    .eq("week_start", weekStart);
+
+  let plannedCost = 0;
+  if (planEntries && planEntries.length > 0) {
+    const recipeIds = [...new Set(planEntries.map(e => e.recipe_id))];
+    const { data: recipes } = await supabase.from("recipes").select("cost").in("id", recipeIds);
+    plannedCost = (recipes || []).reduce((sum, r) => sum + Number(r.cost || 0), 0);
+  }
+
+  // Get or create budget tracking entry
+  let { data: budgetEntry } = await supabase
+    .from("budget_tracking")
+    .select("*")
+    .eq("user_email", email)
+    .eq("week_start", weekStart)
+    .single();
+
+  if (!budgetEntry) {
+    await supabase.from("budget_tracking").insert({
+      user_email: email,
+      week_start: weekStart,
+      planned_budget: weeklyBudgetGoal,
+      actual_spent: 0
+    });
+    budgetEntry = { planned_budget: weeklyBudgetGoal, actual_spent: 0, notes: "" };
+  }
+
+  // Get past 8 weeks for trend
+  const { data: history } = await supabase
+    .from("budget_tracking")
+    .select("*")
+    .eq("user_email", email)
+    .order("week_start", { ascending: false })
+    .limit(8);
+
+  res.render("budget", { 
+    user, 
+    weekStart, 
+    budgetEntry, 
+    plannedCost, 
+    weeklyBudgetGoal,
+    history: (history || []).reverse()
+  });
+});
+
+app.post("/budget/update", async (req, res) => {
+  const { email, actual_spent, notes } = req.body;
+  const weekStart = getWeekStart();
+
+  await supabase
+    .from("budget_tracking")
+    .update({
+      actual_spent: Number(actual_spent || 0),
+      notes: notes || ""
+    })
+    .eq("user_email", email)
+    .eq("week_start", weekStart);
+
+  res.redirect(`/budget?email=${encodeURIComponent(email)}&success=Budget+updated`);
+});
+
+// ---- Recipe Scaling ----
+
+app.get("/recipes/:id/scale", async (req, res) => {
+  const { servings } = req.query;
+  const { data: recipe } = await supabase
+    .from("recipes")
+    .select("*")
+    .eq("id", req.params.id)
+    .single();
+
+  if (!recipe) return res.status(404).send("Recipe not found");
+
+  const originalServings = recipe.servings || 4;
+  const newServings = Number(servings) || originalServings;
+  const scale = newServings / originalServings;
+
+  const scaledRecipe = {
+    ...recipe,
+    servings: newServings,
+    ingredients: recipe.ingredients.map(ing => {
+      const match = ing.trim().match(/^(\d+(?:\.\d+)?)\s+(.+)$/);
+      if (match) {
+        const qty = parseFloat(match[1]) * scale;
+        return `${qty.toFixed(1)} ${match[2]}`;
+      }
+      return ing;
+    }),
+    calories: Math.round(recipe.calories * scale),
+    protein: (recipe.protein * scale).toFixed(1),
+    carbs: (recipe.carbs * scale).toFixed(1),
+    fat: (recipe.fat * scale).toFixed(1),
+    cost: (recipe.cost * scale).toFixed(2)
+  };
+
+  res.json(scaledRecipe);
+});
+
+// ---- Profile ----
+
+app.get("/profile", async (req, res) => {
+  const { email, success = "", error = "" } = req.query;
+  if (!email) return res.redirect("/login");
+
+  const user = await findUser(email);
+  if (!user) return res.redirect("/login");
+
+  let { data: goals } = await supabase
+    .from("user_goals")
+    .select("*")
+    .eq("user_email", email)
+    .single();
+  if (!goals) goals = { daily_calories: 2000, daily_protein: 50, daily_carbs: 250, daily_fat: 70, weekly_budget: 100 };
+
+  const weekStart = getWeekStart();
+
+  const [pantryRes, mealsRes, recipesRes] = await Promise.all([
+    supabase.from("pantry_items").select("*", { count: "exact", head: true }).eq("user_email", email),
+    supabase.from("meal_plans").select("*", { count: "exact", head: true }).eq("user_email", email).eq("week_start", weekStart),
+    supabase.from("recipes").select("*", { count: "exact", head: true })
+  ]);
+
+  res.render("profile", {
+    user,
+    goals,
+    pantryCount: pantryRes.count || 0,
+    mealsCount: mealsRes.count || 0,
+    recipesCount: recipesRes.count || 0,
+    success,
+    error
+  });
+});
+
+app.get("/logout", (_req, res) => res.redirect("/login"));
+
+app.post("/change-password", async (req, res) => {
+  const { email, current_password, new_password, confirm_password } = req.body;
+  const user = await findUser(email);
+  if (!user || user.password !== current_password) {
+    return res.redirect(`/profile?email=${encodeURIComponent(email)}&error=Current+password+is+incorrect`);
+  }
+  if (!new_password || new_password !== confirm_password) {
+    return res.redirect(`/profile?email=${encodeURIComponent(email)}&error=New+passwords+do+not+match`);
+  }
+  await updateUser(email, { password: new_password });
+  res.redirect(`/profile?email=${encodeURIComponent(email)}&success=Password+updated`);
+});
+
+app.post("/delete-account", async (req, res) => {
+  const { email, confirm_email } = req.body;
+  if (!email || email !== confirm_email) {
+    return res.redirect(`/profile?email=${encodeURIComponent(email)}&error=Email+confirmation+did+not+match`);
+  }
+  const { data: templates } = await supabase.from("meal_plan_templates").select("id").eq("created_by", email);
+  const templateIds = (templates || []).map(t => t.id);
+  if (templateIds.length > 0) {
+    await supabase.from("template_entries").delete().in("template_id", templateIds);
+  }
+  await supabase.from("meal_plans").delete().eq("user_email", email);
+  await supabase.from("pantry_items").delete().eq("user_email", email);
+  await supabase.from("user_goals").delete().eq("user_email", email);
+  await supabase.from("budget_tracking").delete().eq("user_email", email);
+  await supabase.from("meal_plan_templates").delete().eq("created_by", email);
+  await supabase.from("users").delete().eq("email", email);
+  res.redirect("/login");
+});
+
+app.listen(3000, async () => {
+  console.log("http://localhost:3000");
+
+  // Verify meal_plans table exists; warn if not yet created in Supabase
+  const { error } = await supabase.from("meal_plans").select("id").limit(1);
+  if (error) {
+    console.warn(
+      "\n[MealMajor] WARNING: 'meal_plans' table not found in Supabase.\n" +
+      "Run schema.sql in your Supabase SQL Editor to create it.\n"
+    );
+  }
+});
