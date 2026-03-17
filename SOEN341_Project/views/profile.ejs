@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — MealMajor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <%
+    const dietLabel = user.diet && user.diet !== '' && user.diet !== 'No Preference' ? user.diet : null;
+    const allergyList = (user.allergies || '').split(',').map(a => a.trim()).filter(Boolean);
+    const personalityParts = [];
+    if (dietLabel) personalityParts.push(dietLabel);
+    if (allergyList.length === 1) personalityParts.push(allergyList[0] + ' allergy');
+    else if (allergyList.length > 1) personalityParts.push(allergyList.length + ' allergies');
+    const personality = personalityParts.join(' · ') || 'No restrictions set';
+    const displayName = user.email.split('@')[0];
+  %>
+
+  <main class="prof-main">
+
+    <% if (success) { %>
+      <div class="alert-success" style="margin:0 0 16px"><%= success %></div>
+    <% } %>
+    <% if (error) { %>
+      <div class="alert-error" style="margin:0 0 16px"><%= error %></div>
+    <% } %>
+
+    <!-- ── Header ── -->
+    <div class="prof-header">
+      <div class="prof-av"><%= user.email.substring(0,2).toUpperCase() %></div>
+      <div class="prof-info">
+        <div class="prof-name"><%= displayName %></div>
+        <div class="prof-email"><%= user.email %></div>
+        <div class="prof-personality"><%= personality %></div>
+      </div>
+    </div>
+
+    <!-- ── Stats strip ── -->
+    <div class="prof-stats">
+      <div class="prof-stat">
+        <div class="prof-stat-val"><%= pantryCount %></div>
+        <div class="prof-stat-label">Pantry items</div>
+      </div>
+      <div class="prof-stat">
+        <div class="prof-stat-val"><%= mealsCount %></div>
+        <div class="prof-stat-label">Meals this week</div>
+      </div>
+      <div class="prof-stat">
+        <div class="prof-stat-val"><%= recipesCount %></div>
+        <div class="prof-stat-label">Recipes available</div>
+      </div>
+    </div>
+
+    <!-- ── Food Profile ── -->
+    <div class="prof-section">
+      <div class="prof-section-head">
+        <div class="prof-section-title">Food Profile</div>
+        <button class="prof-edit-btn" onclick="toggleSection('food')">Edit</button>
+      </div>
+
+      <div id="food-view" class="prof-section-view">
+        <div class="prof-row">
+          <div class="prof-row-label">Diet</div>
+          <div class="prof-row-val"><%= user.diet || 'Not set' %></div>
+        </div>
+        <div class="prof-row">
+          <div class="prof-row-label">Allergies</div>
+          <div class="prof-row-val">
+            <% if (allergyList.length > 0) { %>
+              <% allergyList.forEach(a => { %>
+                <span class="prof-chip prof-chip-allergy"><%= a %></span>
+              <% }) %>
+            <% } else { %>
+              <span class="prof-muted">None</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <div id="food-edit" class="prof-section-edit" style="display:none">
+        <form action="/update-profile" method="POST" class="form">
+          <input type="hidden" name="email" value="<%= user.email %>">
+          <label>
+            Dietary Preference
+            <select name="diet">
+              <option value="">No preference</option>
+              <% ['Vegan','Vegetarian','High-Protein','Balanced','Keto','Pescatarian','Gluten-Free','Dairy-Free','Low-Carb','No Preference'].forEach(d => { %>
+                <option value="<%= d %>" <%= user.diet === d ? 'selected' : '' %>><%= d %></option>
+              <% }) %>
+            </select>
+          </label>
+          <label>
+            Allergies
+            <input type="text" name="allergies" value="<%= user.allergies %>" placeholder="e.g. Nuts, Dairy, Eggs">
+            <small class="muted" style="margin-top:4px;font-size:11px">Separate with commas</small>
+          </label>
+          <div style="display:flex;gap:8px">
+            <button type="submit" class="btn" style="font-size:12px;padding:8px 16px">Save</button>
+            <button type="button" class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="toggleSection('food')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Nutrition Goals ── -->
+    <div class="prof-section">
+      <div class="prof-section-head">
+        <div class="prof-section-title">Nutrition Goals</div>
+        <button class="prof-edit-btn" onclick="toggleSection('nutrition')">Edit</button>
+      </div>
+
+      <div id="nutrition-view" class="prof-section-view">
+        <div class="prof-goals-grid">
+          <div class="prof-goal-block">
+            <div class="prof-goal-val"><%= goals.daily_calories %></div>
+            <div class="prof-goal-label">Calories / day</div>
+          </div>
+          <div class="prof-goal-block">
+            <div class="prof-goal-val"><%= goals.daily_protein %>g</div>
+            <div class="prof-goal-label">Protein</div>
+          </div>
+          <div class="prof-goal-block">
+            <div class="prof-goal-val"><%= goals.daily_carbs %>g</div>
+            <div class="prof-goal-label">Carbs</div>
+          </div>
+          <div class="prof-goal-block">
+            <div class="prof-goal-val"><%= goals.daily_fat %>g</div>
+            <div class="prof-goal-label">Fat</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="nutrition-edit" class="prof-section-edit" style="display:none">
+        <form action="/nutrition/goals" method="POST" class="form">
+          <input type="hidden" name="email" value="<%= user.email %>">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <label>Calories / day
+              <input type="number" name="daily_calories" value="<%= goals.daily_calories %>" min="0">
+            </label>
+            <label>Protein (g)
+              <input type="number" name="daily_protein" value="<%= goals.daily_protein %>" min="0">
+            </label>
+            <label>Carbs (g)
+              <input type="number" name="daily_carbs" value="<%= goals.daily_carbs %>" min="0">
+            </label>
+            <label>Fat (g)
+              <input type="number" name="daily_fat" value="<%= goals.daily_fat %>" min="0">
+            </label>
+          </div>
+          <input type="hidden" name="weekly_budget" value="<%= goals.weekly_budget %>">
+          <div style="display:flex;gap:8px">
+            <button type="submit" class="btn" style="font-size:12px;padding:8px 16px">Save</button>
+            <button type="button" class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="toggleSection('nutrition')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Weekly Budget ── -->
+    <div class="prof-section">
+      <div class="prof-section-head">
+        <div class="prof-section-title">Weekly Budget</div>
+        <button class="prof-edit-btn" onclick="toggleSection('budget')">Edit</button>
+      </div>
+
+      <div id="budget-view" class="prof-section-view">
+        <div class="prof-row">
+          <div class="prof-row-label">Weekly target</div>
+          <div class="prof-row-val prof-row-val-lg">$<%= goals.weekly_budget %></div>
+        </div>
+      </div>
+
+      <div id="budget-edit" class="prof-section-edit" style="display:none">
+        <form action="/nutrition/goals" method="POST" class="form">
+          <input type="hidden" name="email" value="<%= user.email %>">
+          <input type="hidden" name="daily_calories" value="<%= goals.daily_calories %>">
+          <input type="hidden" name="daily_protein" value="<%= goals.daily_protein %>">
+          <input type="hidden" name="daily_carbs" value="<%= goals.daily_carbs %>">
+          <input type="hidden" name="daily_fat" value="<%= goals.daily_fat %>">
+          <label>Weekly grocery budget ($)
+            <input type="number" name="weekly_budget" value="<%= goals.weekly_budget %>" min="0">
+          </label>
+          <div style="display:flex;gap:8px">
+            <button type="submit" class="btn" style="font-size:12px;padding:8px 16px">Save</button>
+            <button type="button" class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="toggleSection('budget')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Account ── -->
+    <div class="prof-section">
+      <div class="prof-section-head">
+        <div class="prof-section-title">Account</div>
+        <button class="prof-edit-btn" onclick="toggleSection('password')">Change password</button>
+      </div>
+
+      <div id="password-view" class="prof-section-view">
+        <div class="prof-row">
+          <div class="prof-row-label">Email</div>
+          <div class="prof-row-val"><%= user.email %></div>
+        </div>
+        <div class="prof-row">
+          <div class="prof-row-label">Password</div>
+          <div class="prof-row-val prof-muted">••••••••</div>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap">
+          <a href="/logout" class="btn btn-secondary" style="font-size:12px;padding:8px 16px">Log out</a>
+          <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;color:var(--coral);border-color:var(--coral)"
+            onclick="toggleSection('delete')">Delete account</button>
+        </div>
+      </div>
+
+      <div id="password-edit" class="prof-section-edit" style="display:none">
+        <form action="/change-password" method="POST" class="form">
+          <input type="hidden" name="email" value="<%= user.email %>">
+          <label>Current password
+            <input type="password" name="current_password" required>
+          </label>
+          <label>New password
+            <input type="password" name="new_password" required>
+          </label>
+          <label>Confirm new password
+            <input type="password" name="confirm_password" required>
+          </label>
+          <div style="display:flex;gap:8px">
+            <button type="submit" class="btn" style="font-size:12px;padding:8px 16px">Update password</button>
+            <button type="button" class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="toggleSection('password')">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Delete zone (hidden by default) -->
+      <div id="delete-edit" class="prof-section-edit prof-danger-zone" style="display:none">
+        <div class="prof-danger-header">Permanently delete your account</div>
+        <p class="prof-muted" style="font-size:13px;margin-bottom:16px">This will remove all your meal plans, pantry, goals, and preferences. This cannot be undone.</p>
+        <form action="/delete-account" method="POST" class="form">
+          <input type="hidden" name="email" value="<%= user.email %>">
+          <label>Type your email to confirm
+            <input type="email" name="confirm_email" placeholder="<%= user.email %>" required>
+          </label>
+          <div style="display:flex;gap:8px">
+            <button type="submit" class="btn" style="font-size:12px;padding:8px 16px;background:var(--coral)">Delete my account</button>
+            <button type="button" class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="toggleSection('delete')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+  <%- include("../partials/footer") %>
+
+  <script>
+    function toggleSection(key) {
+      const view = document.getElementById(key + '-view');
+      const edit = document.getElementById(key + '-edit');
+      if (!view || !edit) return;
+      const isEditing = edit.style.display !== 'none';
+      view.style.display = isEditing ? '' : 'none';
+      edit.style.display = isEditing ? 'none' : '';
+    }
+    // Keep password view visible alongside delete zone toggle
+  </script>
+</body>
+</html>
