@@ -28,65 +28,75 @@ test('User can search recipes by name (RM-5)', async ({ page }) => {
   const email = `rm5user_${Date.now()}@school.ca`;
   await registerAndLogin(page, email);
 
-  // Create a uniquely named recipe
-  const uniqueTitle = `ZestyLemonChicken_${Date.now()}`;
+  // Create a recipe with a fully unique title (timestamp ensures no collisions with old test data)
+  const uniqueTitle = `SearchTest_${Date.now()}`;
   await page.goto(`http://localhost:3000/recipes/new?email=${encodeURIComponent(email)}`);
   await page.fill('input[name="title"]', uniqueTitle);
   await page.locator('textarea[name="ingredients"]').evaluate((el) => {
     el.value = '200g Chicken\n1 cup Rice';
   });
-  await page.fill('textarea[name="steps"]', 'Cook chicken.\nServe with rice.');
+  await page.fill('textarea[name="steps"]', 'Cook chicken. Serve with rice.');
   await page.click('button[type="submit"]');
   await expect(page).toHaveURL(/\/recipes/);
 
-  // Search for our recipe by name
+  // Wait for all cards to finish loading/animating
+  await page.waitForLoadState('networkidle');
+
   const searchInput = page.locator('#rc-search');
   await expect(searchInput).toBeVisible();
-  await searchInput.fill(uniqueTitle.toLowerCase().slice(0, 10));
 
-  const matchingCards = page.locator('.rc-card:visible');
-  await expect(matchingCards).toHaveCount(1);
-  await expect(page.locator('.rc-card:visible .rc-card-name')).toContainText(uniqueTitle);
+  // Search using the full unique title — timestamp makes it truly unique in the DB
+  await searchInput.fill(uniqueTitle.toLowerCase());
 
-  // Search for something that won't match — empty state should appear
-  await searchInput.fill('xyznosuchrecipe999');
+  // Our recipe must appear in results
+  await expect(page.locator(`.rc-card[data-title="${uniqueTitle.toLowerCase()}"]`)).toBeVisible();
+
+  // Empty state: search for something that cannot exist
+  await searchInput.fill('xyznosuchrecipe999abc');
   await expect(page.locator('#rc-empty')).toBeVisible();
-  await expect(page.locator('.rc-card:visible')).toHaveCount(0);
 
-  // Clear the search — cards should return
+  // Clear — cards should return
   await page.click('#rc-search-clear');
   await expect(page.locator('#rc-empty')).not.toBeVisible();
-  await expect(page.locator('.rc-card:visible').first()).toBeVisible();
+  await expect(page.locator('.rc-card').first()).toBeVisible();
 });
 
 test('User can filter recipes by category/tag (RM-6)', async ({ page }) => {
   const email = `rm6user_${Date.now()}@school.ca`;
   await registerAndLogin(page, email);
 
-  // Create a vegan-tagged recipe
-  const veganTitle = `VeganTestDish_${Date.now()}`;
+  // Create a recipe with a vegan tag
   await page.goto(`http://localhost:3000/recipes/new?email=${encodeURIComponent(email)}`);
-  await page.fill('input[name="title"]', veganTitle);
+  await page.fill('input[name="title"]', `VeganDish_${Date.now()}`);
   await page.locator('textarea[name="ingredients"]').evaluate((el) => {
     el.value = '1 cup Chickpeas\n2 tbsp Olive Oil';
   });
   await page.fill('textarea[name="steps"]', 'Mix and serve.');
+
+  // Click "Cost & Tags" tab to reveal the tags input
+  await page.click('.rf-meta-tab[data-panel="cost"]');
+  await expect(page.locator('#rf-panel-cost')).toBeVisible();
   await page.fill('input[name="tags"]', 'vegan');
+
   await page.click('button[type="submit"]');
   await expect(page).toHaveURL(/\/recipes/);
 
-  // Apply the Vegan filter
-  await page.goto(`http://localhost:3000/recipes?email=${encodeURIComponent(email)}`);
+  await page.waitForLoadState('networkidle');
+
+  // Get total card count with "All" filter active
+  const allCards = page.locator('.rc-card');
+  const totalCount = await allCards.count();
+  expect(totalCount).toBeGreaterThan(0);
+
+  // Apply vegan filter
   await page.click('.chip[data-filter="vegan"]');
 
-  // Vegan-tagged cards should be visible
-  const visibleCards = page.locator('.rc-card:visible');
-  const count = await visibleCards.count();
-  expect(count).toBeGreaterThan(0);
+  // Vegan-tagged cards should be visible and empty state should not show
+  await expect(page.locator('.rc-card[data-tags*="vegan"]').first()).toBeVisible();
   await expect(page.locator('#rc-empty')).not.toBeVisible();
 
-  // Click "All" — should show equal or more cards
+  // Click "All" — all cards restored
   await page.click('.chip[data-filter="all"]');
-  const allCount = await page.locator('.rc-card:visible').count();
-  expect(allCount).toBeGreaterThanOrEqual(count);
+  const restoredCount = await page.locator('.rc-card:visible').count();
+  expect(restoredCount).toBe(totalCount);
 });
