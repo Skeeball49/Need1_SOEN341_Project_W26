@@ -1,0 +1,41 @@
+Meeting Minutes
+
+Project: Recipe Management System
+Location: Online and in labs
+
+
+---
+
+February 13, 2026
+
+Discussion: Project initialization, role allocation, UI and backend planning.
+Outcome: Began recipe listing UI and database setup.
+
+
+---
+
+February 20, 2026
+
+Discussion: Create and edit features, Supabase integration, GitHub workflow.
+Outcome: Implemented core functionality and pushed updates.
+
+
+---
+
+February 24, 2026
+
+Discussion: Delete feature, search and filter functionality, testing progress.
+Outcome: Completed RM-1 to RM-5 and initiated full testing and documentation updates.
+
+
+Team Members and roles
+
+Ibrahim Senhaji (40316859) - Search & Filter (RM-5)
+
+Sebastien Keenan (40246291) - Delete Recipe (RM-4)
+
+Santiago Restrepodiaz (40212913) - Edit Recipe (RM-3)
+
+Obi (40235035) - Create Recipe (RM-2)
+
+Amir Shiri (40266795) - Recipe Listing UI (RM-1)
