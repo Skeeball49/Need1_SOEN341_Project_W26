@@ -1,0 +1,31 @@
+Meeting Minutes
+
+Project: MealMajor , Meal Planner System
+Location: Online and in labs
+
+March 13, 2026
+
+Discussion: Meal planner structure, recipe recommendations, and template system.
+Outcome: Implemented recipe recommendation engine, meal templates, and related backend routes.
+
+March 15, 2026
+
+Discussion: Nutrition tracking, macro goals, and user preference flows.
+Outcome: Added nutrition tracker with daily macro summary, goal tracking, and user preference features.
+
+March 20, 2026
+
+Discussion: UI improvements, ingredient database, CI pipeline, and testing.
+Outcome: Implemented ingredient nutrition database, improved UI/animations, added CI pipeline, and end-to-end tests.
+
+Team Members and roles
+
+Ibrahim Senhaji (40316859) : Budget tracking, recipe scaling, and backend routes
+
+Sebastien Keenan (40246291) : Recipe recommendation engine, templates, and CI pipeline
+
+Santiago Restrepodiaz (40212913) : UI animations, transitions, and frontend enhancements
+
+Obi (40235035) : Ingredient database, auto-estimation, UI visualization, and frontend features
+
+Amir Shiri (40266795) : Nutrition tracking, macro goals, and tracking routes
