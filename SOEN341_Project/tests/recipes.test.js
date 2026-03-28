@@ -65,38 +65,41 @@ test('User can filter recipes by category/tag (RM-6)', async ({ page }) => {
   const email = `rm6user_${Date.now()}@school.ca`;
   await registerAndLogin(page, email);
 
-  // Create a recipe with a vegan tag
+  // Create a recipe tagged under Breakfast category
+  const uniqueTitle = `BreakfastDish_${Date.now()}`;
   await page.goto(`http://localhost:3000/recipes/new?email=${encodeURIComponent(email)}`);
-  await page.fill('input[name="title"]', `VeganDish_${Date.now()}`);
+  await page.fill('input[name="title"]', uniqueTitle);
   await page.locator('textarea[name="ingredients"]').evaluate((el) => {
-    el.value = '1 cup Chickpeas\n2 tbsp Olive Oil';
+    el.value = '1 cup Oats\n1 cup Almond Milk';
   });
   await page.fill('textarea[name="steps"]', 'Mix and serve.');
 
-  // Click "Cost & Tags" tab to reveal the tags input
-  await page.click('.rf-meta-tab[data-panel="cost"]');
-  await expect(page.locator('#rf-panel-cost')).toBeVisible();
-  await page.fill('input[name="tags"]', 'vegan');
+  // Select Breakfast as the category
+  await page.selectOption('select[name="category"]', 'Breakfast');
 
   await page.click('button[type="submit"]');
   await expect(page).toHaveURL(/\/recipes/);
 
   await page.waitForLoadState('networkidle');
 
-  // Get total card count with "All" filter active
+  // Get total card count before filtering
   const allCards = page.locator('.rc-card');
   const totalCount = await allCards.count();
   expect(totalCount).toBeGreaterThan(0);
 
-  // Apply vegan filter
-  await page.click('.chip[data-filter="vegan"]');
+  // Click the Breakfast filter button (matches actual UI text)
+  await page.getByText('🍳 Breakfast').click();
+  await page.waitForLoadState('networkidle');
 
-  // Vegan-tagged cards should be visible and empty state should not show
-  await expect(page.locator('.rc-card[data-tags*="vegan"]').first()).toBeVisible();
+  // Our newly created breakfast recipe should be visible
+  await expect(page.getByText(uniqueTitle)).toBeVisible();
+
+  // Empty state should NOT be showing
   await expect(page.locator('#rc-empty')).not.toBeVisible();
 
-  // Click "All" — all cards restored
-  await page.click('.chip[data-filter="all"]');
+  // Click "All" to restore all cards
+  await page.getByText('All').click();
+  await page.waitForLoadState('networkidle');
   const restoredCount = await page.locator('.rc-card:visible').count();
   expect(restoredCount).toBe(totalCount);
 });
