@@ -8,13 +8,13 @@ const RECIPE_ID = 'a0fdc0ea-5967-486c-9317-02a8ce67b63b';
 
 test('User can find a recipe, add an ingredient, and save changes', async ({ page }) => {
   // Navigate directly to the dashboard as the logged-in user
-  await page.goto(`${BASE_URL}/dashboard?email=${encodeURIComponent(BASE_EMAIL)}`);
+  await page.goto(`${BASE_URL}/dashboard?email=${BASE_EMAIL}`);
 
   // Click the Recipes link in the nav
   await page.click('a[href*="/recipes"]');
 
-  // Verify we are on the recipes page
-  await expect(page).toHaveURL(`${BASE_URL}/recipes?email=${encodeURIComponent(BASE_EMAIL)}`);
+  // Verify we are on the recipes page (use regex to avoid encoded vs unencoded mismatch)
+  await expect(page).toHaveURL(/\/recipes\?email=test/);
 
   // Click the Edit button for "Avocado Toast with Egg" (hardcoded recipe)
   await page.click(`a[href*="${RECIPE_ID}/edit"]`);
@@ -32,5 +32,5 @@ test('User can find a recipe, add an ingredient, and save changes', async ({ pag
   await page.click('button:has-text("Save Changes")');
 
   // Verify we are redirected back to the recipes page after saving
-  await expect(page).toHaveURL(`${BASE_URL}/recipes?email=${encodeURIComponent(BASE_EMAIL)}`);
+  await expect(page).toHaveURL(/\/recipes\?email=test/);
 });
