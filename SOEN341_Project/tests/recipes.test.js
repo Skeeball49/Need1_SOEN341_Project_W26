@@ -87,6 +87,74 @@ test('User can filter recipes by category/tag (RM-6)', async ({ page }) => {
   const totalCount = await allCards.count();
   expect(totalCount).toBeGreaterThan(0);
 
+  // Click the Breakfast filter button — target by role to avoid matching recipe cards
+  await page.getByRole('button', { name: '🍳 Breakfast' }).click();
+  await page.waitForLoadState('networkidle');
+
+  // Our newly created breakfast recipe should be visible
+  await expect(page.locator(`.rc-card[data-title="${uniqueTitle.toLowerCase()}"]`)).toBeVisible();
+
+  // Empty state should NOT be showing
+  await expect(page.locator('#rc-empty')).not.toBeVisible();
+
+  // Click "All" to restore all cards
+  await page.getByRole('button', { name: 'All' }).click();
+  await page.waitForLoadState('networkidle');
+  const restoredCount = await page.locator('.rc-card:visible').count();
+  expect(restoredCount).toBe(totalCount);
+});  });
+  await page.fill('textarea[name="steps"]', 'Cook chicken. Serve with rice.');
+  await page.click('button[type="submit"]');
+  await expect(page).toHaveURL(/\/recipes/);
+
+  // Wait for all cards to finish loading/animating
+  await page.waitForLoadState('networkidle');
+
+  const searchInput = page.locator('#rc-search');
+  await expect(searchInput).toBeVisible();
+
+  // Search using the full unique title — timestamp makes it truly unique in the DB
+  await searchInput.fill(uniqueTitle.toLowerCase());
+
+  // Our recipe must appear in results
+  await expect(page.locator(`.rc-card[data-title="${uniqueTitle.toLowerCase()}"]`)).toBeVisible();
+
+  // Empty state: search for something that cannot exist
+  await searchInput.fill('xyznosuchrecipe999abc');
+  await expect(page.locator('#rc-empty')).toBeVisible();
+
+  // Clear — cards should return
+  await page.click('#rc-search-clear');
+  await expect(page.locator('#rc-empty')).not.toBeVisible();
+  await expect(page.locator('.rc-card').first()).toBeVisible();
+});
+
+test('User can filter recipes by category/tag (RM-6)', async ({ page }) => {
+  const email = `rm6user_${Date.now()}@school.ca`;
+  await registerAndLogin(page, email);
+
+  // Create a recipe tagged under Breakfast category
+  const uniqueTitle = `BreakfastDish_${Date.now()}`;
+  await page.goto(`http://localhost:3000/recipes/new?email=${encodeURIComponent(email)}`);
+  await page.fill('input[name="title"]', uniqueTitle);
+  await page.locator('textarea[name="ingredients"]').evaluate((el) => {
+    el.value = '1 cup Oats\n1 cup Almond Milk';
+  });
+  await page.fill('textarea[name="steps"]', 'Mix and serve.');
+
+  // Select Breakfast as the category
+  await page.selectOption('select[name="category"]', 'Breakfast');
+
+  await page.click('button[type="submit"]');
+  await expect(page).toHaveURL(/\/recipes/);
+
+  await page.waitForLoadState('networkidle');
+
+  // Get total card count before filtering
+  const allCards = page.locator('.rc-card');
+  const totalCount = await allCards.count();
+  expect(totalCount).toBeGreaterThan(0);
+
   // Click the Breakfast filter button (matches actual UI text)
   await page.getByText('🍳 Breakfast').click();
   await page.waitForLoadState('networkidle');
