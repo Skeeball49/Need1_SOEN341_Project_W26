@@ -19,11 +19,11 @@ This project follows an Agile/Scrum approach across multiple sprints. We use Git
 > By mid-semester, the team will propose and implement an additional feature integrated with the baseline features.
 
 
-- **Member 1** — Name Ibrahim Senhaji (ID: 40316859) – Role: Backend Developer
-- **Member 2** — Name Santiago Restrepodiaz (ID: 40212913) – Role: Frontend Developer
-- **Member 3** — Name Sebastien Keenan (ID: 40246291) – Role: Scrum Master
-- **Member 4** — Name Amir Shiri (ID: 40266795) – Role: Documentation Lead
-- **Member 5** — Name Obi (ID: 40235035) – Role: Tech Lead 
+- **Member 1** — Name Ibrahim Senhaji (ID: 40316859) – ibrahim1758
+- **Member 2** — Name Santiago Restrepo Diaz (ID: 40212913) – WhyyyTho
+- **Member 3** — Name Sebastien Keenan (ID: 40246291) – Skeeball49
+- **Member 4** — Name Amir Shiri (ID: 40266795) – AmirSh1ri
+- **Member 5** — Name Obi (ID: 40235035) – Kingobi90 
 
 
 ## Tools & Workflow
