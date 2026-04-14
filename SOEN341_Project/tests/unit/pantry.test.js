@@ -13,7 +13,7 @@ describe("consolidateIngredients", () => {
     const { groceryList } = consolidateIngredients(recipes, []);
 
     expect(groceryList).toHaveLength(2);
-    const flour = groceryList.find(i => i.name === "cups flour");
+    const flour = groceryList.find(i => i.name === "flour");
     expect(flour.toBuy).toBe(2);
     expect(flour.inPantry).toBe(0);
   });
@@ -32,7 +32,7 @@ describe("consolidateIngredients", () => {
 
   it("excludes ingredients fully covered by the pantry", () => {
     const recipes = [{ ingredients: ["2 cups milk"], cost: 1 }];
-    const pantry  = [{ ingredient_name: "cups milk", quantity: 5, category: "Dairy" }];
+    const pantry  = [{ ingredient_name: "milk", quantity: 5, category: "Dairy" }];
 
     const { groceryList } = consolidateIngredients(recipes, pantry);
 
@@ -47,8 +47,30 @@ describe("consolidateIngredients", () => {
 
     const { groceryList } = consolidateIngredients(recipes, []);
 
-    const flour = groceryList.find(i => i.name === "cups flour");
+    const flour = groceryList.find(i => i.name === "flour");
     expect(flour.needed).toBe(5);
+  });
+
+  it("counts the same recipe each time it appears in the planner input", () => {
+    const plannedRecipes = [
+      { ingredients: ["2 cups flour"], cost: 3 },
+      { ingredients: ["2 cups flour"], cost: 3 },
+    ];
+
+    const { groceryList, totalCost } = consolidateIngredients(plannedRecipes, []);
+
+    const flour = groceryList.find(i => i.name === "flour");
+    expect(flour.needed).toBe(4);
+    expect(totalCost).toBe(6);
+  });
+
+  it("matches pantry items even when the pantry name still includes a unit", () => {
+    const recipes = [{ ingredients: ["1 cup milk"], cost: 1 }];
+    const pantry = [{ ingredient_name: "cup milk", quantity: 1, category: "Dairy" }];
+
+    const { groceryList } = consolidateIngredients(recipes, pantry);
+
+    expect(groceryList).toHaveLength(0);
   });
 
   it("calculates totalCost as the sum of all recipe costs", () => {

@@ -122,12 +122,16 @@ describe("scaleIngredient", () => {
 });
 
 describe("parseIngredient", () => {
-  it("parses an integer quantity and name", () => {
-    expect(parseIngredient("2 cups flour")).toEqual({ qty: 2, name: "cups flour" });
+  it("parses an integer quantity and strips measurement units from the name", () => {
+    expect(parseIngredient("2 cups flour")).toEqual({ qty: 2, name: "flour" });
   });
 
   it("parses a decimal quantity", () => {
-    expect(parseIngredient("1.5 tablespoons olive oil")).toEqual({ qty: 1.5, name: "tablespoons olive oil" });
+    expect(parseIngredient("1.5 tablespoons olive oil")).toEqual({ qty: 1.5, name: "olive oil" });
+  });
+
+  it("parses quantities that are attached to abbreviated units", () => {
+    expect(parseIngredient("200g pasta")).toEqual({ qty: 200, name: "pasta" });
   });
 
   it("falls back to qty=1 when there is no leading number", () => {

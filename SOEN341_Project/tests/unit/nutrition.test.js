@@ -97,7 +97,7 @@ describe("calculateWeeklyStats", () => {
 describe("calculateMatchPercentage", () => {
   it("returns 100 when pantry has all recipe ingredients", () => {
     const recipe = { ingredients: ["2 cups flour", "1 egg", "1 cup milk"] };
-    const pantry = ["cups flour", "egg", "cup milk"];
+    const pantry = ["flour", "egg", "milk"];
     expect(calculateMatchPercentage(recipe, pantry)).toBe(100);
   });
 
@@ -114,8 +114,14 @@ describe("calculateMatchPercentage", () => {
 
   it("returns 50 when half the ingredients match", () => {
     const recipe = { ingredients: ["2 cups flour", "1 egg", "1 cup milk", "butter"] };
-    const pantry = ["cups flour", "egg"];
+    const pantry = ["flour", "egg"];
     expect(calculateMatchPercentage(recipe, pantry)).toBe(50);
+  });
+
+  it("normalizes pantry ingredient names before matching", () => {
+    const recipe = { ingredients: ["1 cup milk"] };
+    const pantry = ["cup milk"];
+    expect(calculateMatchPercentage(recipe, pantry)).toBe(100);
   });
 
   it("returns 0 for a recipe with no ingredients", () => {

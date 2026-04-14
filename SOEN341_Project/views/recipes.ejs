@@ -11,11 +11,21 @@
   <%- include("../partials/navbar") %>
 
   <%
-    const catEmoji = {
-      'Main Course':'🍽', 'Breakfast':'🍳', 'Lunch':'🥙', 'Dinner':'🌙',
-      'Dessert':'🍰', 'Snack':'🍿', 'Soup':'🍲', 'Salad':'🥗',
-      'Pasta':'🍝', 'Sandwich':'🥪', 'Pizza':'🍕', 'Seafood':'🦐',
-      'Vegetarian':'🥦', 'Vegan':'🌱'
+    const catIcons = {
+      'Main Course':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5M6 10.5h12M4.5 14.25h15M5.25 18h13.5"/></svg>',
+      'Breakfast':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 14.25h15M6.75 9a5.25 5.25 0 1 1 10.5 0v5.25"/></svg>',
+      'Lunch':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15M6 7.5h12M7.5 16.5h9"/></svg>',
+      'Dinner':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75A6.75 6.75 0 1 0 15 17.25 6 6 0 1 1 15 3.75Z"/></svg>',
+      'Dessert':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 9.75h10.5M7.5 9.75V18a1.5 1.5 0 0 0 1.5 1.5h6A1.5 1.5 0 0 0 16.5 18V9.75M9 6.75A3 3 0 0 1 12 3.75a3 3 0 0 1 3 3"/></svg>',
+      'Snack':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21c4.97 0 9-3.134 9-7s-4.03-7-9-7-9 3.134-9 7 4.03 7 9 7Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7c0-2.209 1.567-4 3.5-4 .574 0 1.116.158 1.592.438C16.443 5.088 14.36 7 12 7Z"/></svg>',
+      'Soup':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12.75h10.5a3.75 3.75 0 0 1-3.75 3.75h-3a3.75 3.75 0 0 1-3.75-3.75ZM8.25 9.75c0-1.657 1.007-3 2.25-3M12 9.75c0-2.071 1.007-3.75 2.25-3.75"/></svg>',
+      'Salad':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12c1.75-3.5 4.404-5.25 7.5-5.25S17.75 8.5 19.5 12c-1.75 3.5-4.404 5.25-7.5 5.25S6.25 15.5 4.5 12Z"/></svg>',
+      'Pasta':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15h15M6.75 11.25h10.5M8.25 7.5h7.5"/></svg>',
+      'Sandwich':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 10.5h13.5l-1.5 6h-10.5l-1.5-6ZM6.75 10.5a2.25 2.25 0 1 1 4.5 0M12.75 10.5a2.25 2.25 0 1 1 4.5 0"/></svg>',
+      'Pizza':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 5.25 7.5 13.5 7.5-13.5A15.96 15.96 0 0 0 12 3.75c-2.64 0-5.132.638-7.5 1.5Z"/><circle cx="9.25" cy="9.25" r=".75"/><circle cx="14.75" cy="10.5" r=".75"/></svg>',
+      'Seafood':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12c2.5-3 5.5-4.5 9-4.5 2.5 0 4.75.75 6.75 2.25-2 1.5-4.25 2.25-6.75 2.25-3.5 0-6.5 1.5-9 4.5 0-1.5.5-3 1.5-4.5-1-1.5-1.5-3-1.5-4.5Z"/></svg>',
+      'Vegetarian':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 14.25c0-5.25 2.25-8.25 6.75-9 0 4.5-1.5 7.5-4.5 9 1.5.75 3.75 1.125 6.75 1.125-1.5 1.5-3.75 2.25-6.75 2.25-1.5 0-2.625-.375-3.375-1.125.75-.75 1.125-1.875 1.125-3.375Z"/></svg>',
+      'Vegan':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 14.25c0-5.25 2.25-8.25 6.75-9 0 4.5-1.5 7.5-4.5 9 1.5.75 3.75 1.125 6.75 1.125-1.5 1.5-3.75 2.25-6.75 2.25-1.5 0-2.625-.375-3.375-1.125.75-.75 1.125-1.875 1.125-3.375Z"/></svg>'
     };
     const categories = [...new Set(recipes.map(r => r.category).filter(Boolean))];
     const emailParam = (typeof user !== 'undefined' && user) ? '?email=' + encodeURIComponent(user.email) : '';
@@ -49,22 +59,22 @@
     <div class="rc-tags-row">
       <button class="chip on" data-filter="all">All</button>
       <% categories.forEach(cat => { %>
-        <button class="chip" data-filter="<%= cat %>"><%= catEmoji[cat] || '🍽' %> <%= cat %></button>
+        <button class="chip" data-filter="<%= cat %>"><span style="display:inline-flex;align-items:center;gap:6px;"><%- catIcons[cat] || catIcons['Main Course'] %><span><%= cat %></span></span></button>
       <% }) %>
-      <button class="chip" data-filter="quick">⚡ Under 30 min</button>
+      <button class="chip" data-filter="quick"><span style="display:inline-flex;align-items:center;gap:6px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 2.25 6 13.5h4.5l-1.5 8.25L18 10.5h-4.5l1.5-8.25Z"/></svg><span>Under 30 min</span></span></button>
       <button class="chip" data-filter="easy">Easy</button>
     </div>
 
     <!-- ── Empty state ── -->
     <div id="rc-empty" class="rc-empty" style="display:none">
-      <div style="font-size:40px;margin-bottom:12px">🔍</div>
+      <div style="margin-bottom:12px"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.75"/><path stroke-linecap="round" stroke-linejoin="round" d="m20.25 20.25-4.125-4.125"/></svg></div>
       <div>No recipes found</div>
       <p class="muted" style="font-size:13px;margin-top:6px">Try a different search or filter</p>
     </div>
 
     <% if (recipes.length === 0) { %>
       <div class="rc-empty">
-        <div style="font-size:40px;margin-bottom:12px">🍽</div>
+        <div style="margin-bottom:12px"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5M6 10.5h12M4.5 14.25h15M5.25 18h13.5"/></svg></div>
         <div>No recipes yet</div>
         <a href="/recipes/new<%= emailParam %>" class="btn" style="margin-top:16px;font-size:13px">Create your first recipe</a>
       </div>
@@ -73,7 +83,7 @@
     <!-- ── Recipe grid ── -->
     <div class="rc-grid" id="rc-grid">
       <% recipes.forEach(r => {
-        const emoji = catEmoji[r.category] || '🍽';
+        const icon = catIcons[r.category] || catIcons['Main Course'];
         const ingPreview = (r.ingredients || []).slice(0, 4).map(i => {
           const m = i.match(/^[\d./]+\s*[a-zA-Z]*\s+(.+)$/) || i.match(/^[a-zA-Z]+\s+(.+)$/);
           return m ? m[1] : i;
@@ -85,8 +95,7 @@
           data-category="<%= (r.category || '').toLowerCase() %>"
           data-difficulty="<%= (r.difficulty || '').toLowerCase() %>"
           data-time="<%= r.prepTime || 0 %>">
-
-          <div class="rc-card-thumb"><span class="rc-card-emoji"><%= emoji %></span></div>
+          <div class="rc-card-thumb"><span class="rc-card-emoji"><%- icon %></span></div>
 
           <div class="rc-card-body">
             <div class="rc-card-name"><%= r.title %></div>

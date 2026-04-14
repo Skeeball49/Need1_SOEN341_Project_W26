@@ -1,11 +1,15 @@
 (function () {
+  const transitionIcon =
+    '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">' +
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 14.25c0-5.25 2.25-8.25 6.75-9 0 4.5-1.5 7.5-4.5 9 1.5.75 3.75 1.125 6.75 1.125-1.5 1.5-3.75 2.25-6.75 2.25-1.5 0-2.625-.375-3.375-1.125.75-.75 1.125-1.875 1.125-3.375Z"/>' +
+    '</svg>';
   // ── Inject overlay ──────────────────────────────────────────────
   const ov = document.createElement('div');
   ov.id = 'pg-ov';
   ov.innerHTML =
     '<div class="pg-door pg-door-l"><span class="pg-word">Meal</span></div>' +
     '<div class="pg-door pg-door-r"><span class="pg-word"><em>Major</em></span></div>' +
-    '<div id="pg-carrot">🥕</div>';
+    '<div id="pg-carrot">' + transitionIcon + '</div>';
   document.body.prepend(ov);
 
   const carrotEl = document.getElementById('pg-carrot');
@@ -71,9 +75,9 @@
   // ── Tab carrot: quick fly, no doors ─────────────────────────────
   window.mmCarrot = function () {
     const c = document.createElement('span');
-    c.textContent = '🥕';
+    c.innerHTML = transitionIcon;
     c.style.cssText =
-      'position:fixed;top:46%;left:-80px;font-size:52px;' +
+      'position:fixed;top:46%;left:-80px;color:inherit;' +
       'z-index:9998;pointer-events:none;' +
       'filter:drop-shadow(3px 5px 12px rgba(0,0,0,.45));' +
       'transform:rotate(-20deg);transition:none';

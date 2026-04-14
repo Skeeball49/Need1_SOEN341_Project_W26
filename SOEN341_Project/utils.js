@@ -15,6 +15,117 @@ export function getWeekStart(date = new Date()) {
   return d.toISOString().split("T")[0];
 }
 
+const UNIT_ALIASES = new Map([
+  ["cup", "cup"],
+  ["cups", "cup"],
+  ["tablespoon", "tbsp"],
+  ["tablespoons", "tbsp"],
+  ["tbsp", "tbsp"],
+  ["teaspoon", "tsp"],
+  ["teaspoons", "tsp"],
+  ["tsp", "tsp"],
+  ["gram", "g"],
+  ["grams", "g"],
+  ["g", "g"],
+  ["kilogram", "kg"],
+  ["kilograms", "kg"],
+  ["kg", "kg"],
+  ["milliliter", "ml"],
+  ["milliliters", "ml"],
+  ["ml", "ml"],
+  ["liter", "l"],
+  ["liters", "l"],
+  ["l", "l"],
+  ["ounce", "oz"],
+  ["ounces", "oz"],
+  ["oz", "oz"],
+  ["pound", "lb"],
+  ["pounds", "lb"],
+  ["lb", "lb"],
+  ["lbs", "lb"],
+  ["clove", "clove"],
+  ["cloves", "clove"],
+  ["can", "can"],
+  ["cans", "can"],
+  ["package", "package"],
+  ["packages", "package"],
+  ["packet", "packet"],
+  ["packets", "packet"],
+  ["slice", "slice"],
+  ["slices", "slice"],
+  ["piece", "piece"],
+  ["pieces", "piece"],
+]);
+
+function normalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function parseAmount(token) {
+  const normalized = token.trim();
+  if (normalized.includes(" ")) {
+    const [whole, fraction] = normalized.split(/\s+/, 2);
+    return Number(whole) + parseAmount(fraction);
+  }
+  if (normalized.includes("/")) {
+    const [numerator, denominator] = normalized.split("/", 2).map(Number);
+    if (!denominator) return 0;
+    return numerator / denominator;
+  }
+  return Number(normalized);
+}
+
+function extractIngredientParts(raw) {
+  const trimmed = normalizeText(raw);
+  const match = trimmed.match(/^(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?)([a-zA-Z]+)?\s+(.+)$/);
+
+  if (!match) {
+    return { qty: 1, unit: "", name: normalizeIngredientName(trimmed) };
+  }
+
+  const qty = parseAmount(match[1]);
+  let unit = UNIT_ALIASES.get((match[2] || "").toLowerCase()) || "";
+  let remainder = normalizeText(match[3]);
+
+  if (!unit) {
+    const parts = remainder.split(" ");
+    const maybeUnit = UNIT_ALIASES.get(parts[0]);
+    if (maybeUnit) {
+      unit = maybeUnit;
+      remainder = parts.slice(1).join(" ");
+    }
+  }
+
+  if (remainder.startsWith("of ")) {
+    remainder = remainder.slice(3);
+  }
+
+  return {
+    qty,
+    unit,
+    name: normalizeIngredientName(remainder),
+  };
+}
+
+export function normalizeIngredientName(raw) {
+  let normalized = normalizeText(raw);
+  if (!normalized) return "";
+
+  const parts = normalized.split(" ");
+  while (parts.length > 1 && UNIT_ALIASES.has(parts[0])) {
+    parts.shift();
+  }
+  while (parts[0] === "of") {
+    parts.shift();
+  }
+
+  normalized = parts.join(" ").replace(/^[,.-]+|[,.-]+$/g, "").trim();
+  return normalized;
+}
+
 /**
  * Generates a unique code for a recipe based on its title and ID.
  * Format: First letters of each word (uppercase) + last 4 chars of ID
@@ -39,12 +150,8 @@ export function generateRecipeCode(title, id) {
  * @returns {{ qty: number, name: string }}
  */
 export function parseIngredient(raw) {
-  const trimmed = raw.trim();
-  const match = trimmed.match(/^(\d+(?:\.\d+)?)\s+(.+)$/);
-  if (match) {
-    return { qty: parseFloat(match[1]), name: match[2].toLowerCase().trim() };
-  }
-  return { qty: 1, name: trimmed.toLowerCase().trim() };
+  const { qty, name } = extractIngredientParts(raw);
+  return { qty, name };
 }
 
 /**
@@ -72,7 +179,9 @@ export function categorizeIngredient(name) {
 export function consolidateIngredients(recipes, pantryItems = []) {
   const pantryMap = {};
   for (const item of pantryItems) {
-    pantryMap[item.ingredient_name.toLowerCase().trim()] = Number(item.quantity || 0);
+    const pantryName = normalizeIngredientName(item.ingredient_name);
+    if (!pantryName) continue;
+    pantryMap[pantryName] = Number(pantryMap[pantryName] || 0) + Number(item.quantity || 0);
   }
 
   const ingredientMap = {};
@@ -81,25 +190,34 @@ export function consolidateIngredients(recipes, pantryItems = []) {
   for (const recipe of recipes) {
     totalCost += Number(recipe.cost || 0);
     for (const raw of recipe.ingredients || []) {
-      const { qty, name } = parseIngredient(raw);
-      ingredientMap[name] = (ingredientMap[name] || 0) + qty;
+      const { qty, name, unit } = extractIngredientParts(raw);
+      if (!name) continue;
+
+      if (!ingredientMap[name]) {
+        ingredientMap[name] = { needed: 0, unit };
+      }
+      ingredientMap[name].needed += qty;
+      if (!ingredientMap[name].unit && unit) {
+        ingredientMap[name].unit = unit;
+      }
     }
   }
 
   const groceryList = Object.entries(ingredientMap)
-    .map(([name, needed]) => {
+    .map(([name, info]) => {
+      const needed = info.needed;
       const inPantry = pantryMap[name] || 0;
       const toBuy = Math.max(0, needed - inPantry);
 
       let category = "Other";
-      const pantryItem = pantryItems.find(p => p.ingredient_name.toLowerCase() === name);
+      const pantryItem = pantryItems.find(p => normalizeIngredientName(p.ingredient_name) === name);
       if (pantryItem && pantryItem.category) {
         category = pantryItem.category;
       } else {
         category = categorizeIngredient(name);
       }
 
-      return { name, needed, inPantry, toBuy, category };
+      return { name, unit: info.unit, needed, inPantry, toBuy, category };
     })
     .filter(item => item.toBuy > 0)
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -117,11 +235,12 @@ export function consolidateIngredients(recipes, pantryItems = []) {
  */
 export function calculateMatchPercentage(recipe, pantryIngredients) {
   const recipeIngredients = (recipe.ingredients || []).map(ing => parseIngredient(ing).name);
+  const normalizedPantry = pantryIngredients.map(normalizeIngredientName).filter(Boolean);
 
   if (recipeIngredients.length === 0) return 0;
 
   const matched = recipeIngredients.filter(ing =>
-    pantryIngredients.some(p => ing.includes(p) || p.includes(ing))
+    normalizedPantry.some(p => ing.includes(p) || p.includes(ing))
   );
 
   return Math.round((matched.length / recipeIngredients.length) * 100);

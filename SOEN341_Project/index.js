@@ -17,6 +17,7 @@ import {
   buildRecipeObject,
   scaleIngredient,
   validateRegistration,
+  normalizeIngredientName,
 } from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -379,19 +380,32 @@ app.get("/grocery", async (req, res) => {
     .eq("week_start", weekStart);
 
   if (!planEntries || planEntries.length === 0) {
-    return res.render("grocery", { user, groceryList: [], weekStart, totalCost: 0 });
+    return res.render("grocery", {
+      user,
+      groceryList: [],
+      groupedList: {},
+      weekStart,
+      totalCost: 0,
+      hasPlannedMeals: false,
+    });
   }
 
   const recipeIds = [...new Set(planEntries.map((e) => e.recipe_id))];
-  const { data: recipes } = await supabase.from("recipes").select("*").in("id", recipeIds);
+  const [{ data: recipes }, { data: pantryItems }] = await Promise.all([
+    supabase.from("recipes").select("*").in("id", recipeIds),
+    supabase.from("pantry_items").select("*").eq("user_email", email),
+  ]);
 
-  // Get user's pantry items
-  const { data: pantryItems } = await supabase
-    .from("pantry_items")
-    .select("*")
-    .eq("user_email", email);
+  const recipeMap = {};
+  for (const recipe of recipes || []) {
+    recipeMap[String(recipe.id)] = recipe;
+  }
 
-  const { groceryList, totalCost } = consolidateIngredients(recipes || [], pantryItems || []);
+  const plannedRecipes = (planEntries || [])
+    .map((entry) => recipeMap[String(entry.recipe_id)])
+    .filter(Boolean);
+
+  const { groceryList, totalCost } = consolidateIngredients(plannedRecipes, pantryItems || []);
 
   // Group by category
   const groupedList = {};
@@ -400,7 +414,14 @@ app.get("/grocery", async (req, res) => {
     groupedList[item.category].push(item);
   }
 
-  res.render("grocery", { user, groceryList, groupedList, weekStart, totalCost });
+  res.render("grocery", {
+    user,
+    groceryList,
+    groupedList,
+    weekStart,
+    totalCost,
+    hasPlannedMeals: true,
+  });
 });
 
 // ---- Pantry Management ----
@@ -427,7 +448,15 @@ app.post("/pantry/add", async (req, res) => {
     return res.redirect(`/pantry?email=${encodeURIComponent(email)}&error=Ingredient+name+is+required`);
   }
 
-  const normalizedName = ingredient_name.toLowerCase().trim();
+  const normalizedName = normalizeIngredientName(ingredient_name);
+  const quantityNumber = Number(quantity || 1);
+
+  if (!normalizedName) {
+    return res.redirect(`/pantry?email=${encodeURIComponent(email)}&error=Ingredient+name+is+required`);
+  }
+  if (!Number.isFinite(quantityNumber) || quantityNumber <= 0) {
+    return res.redirect(`/pantry?email=${encodeURIComponent(email)}&error=Quantity+must+be+greater+than+0`);
+  }
 
   // Check if item already exists
   const { data: existing } = await supabase
@@ -439,7 +468,7 @@ app.post("/pantry/add", async (req, res) => {
 
   if (existing) {
     // Update existing quantity
-    const newQty = Number(existing.quantity || 0) + Number(quantity || 1);
+    const newQty = Number(existing.quantity || 0) + quantityNumber;
     await supabase
       .from("pantry_items")
       .update({ 
@@ -454,7 +483,7 @@ app.post("/pantry/add", async (req, res) => {
     await supabase.from("pantry_items").insert({
       user_email: email,
       ingredient_name: normalizedName,
-      quantity: Number(quantity || 1),
+      quantity: quantityNumber,
       unit: unit || "",
       expiration_date: expiration_date || null,
       category: category || "Other"
@@ -472,13 +501,18 @@ app.post("/pantry/remove", async (req, res) => {
 
 app.post("/pantry/update", async (req, res) => {
   const { email, item_id, quantity } = req.body;
-  if (quantity && Number(quantity) > 0) {
-    await supabase
-      .from("pantry_items")
-      .update({ quantity: Number(quantity) })
-      .eq("id", item_id)
-      .eq("user_email", email);
+  const quantityNumber = Number(quantity);
+
+  if (!Number.isFinite(quantityNumber) || quantityNumber <= 0) {
+    return res.redirect(`/pantry?email=${encodeURIComponent(email)}&error=Quantity+must+be+greater+than+0`);
   }
+
+  await supabase
+    .from("pantry_items")
+    .update({ quantity: quantityNumber })
+    .eq("id", item_id)
+    .eq("user_email", email);
+
   res.redirect(`/pantry?email=${encodeURIComponent(email)}&success=Quantity+updated`);
 });
 
@@ -497,7 +531,9 @@ app.get("/recommendations", async (req, res) => {
     .select("*")
     .eq("user_email", email);
 
-  const pantryIngredients = (pantryItems || []).map(item => item.ingredient_name.toLowerCase());
+  const pantryIngredients = (pantryItems || [])
+    .map(item => normalizeIngredientName(item.ingredient_name))
+    .filter(Boolean);
 
   // Get all recipes
   const { data: allRecipes } = await supabase.from("recipes").select("*");

@@ -83,7 +83,7 @@
                 <button type="button" class="rf-meta-tab" data-panel="nutrition">Nutrition</button>
                 <button type="button" class="rf-meta-tab" data-panel="cost">Cost & Tags</button>
               </div>
-              <span class="rf-est-label" id="rf-est-label" style="display:none">✨ estimated</span>
+              <span class="rf-est-label" id="rf-est-label" style="display:none">Estimated</span>
             </div>
 
             <!-- Details tab -->
@@ -165,7 +165,7 @@
           </div>
 
           <div class="rf-form-actions">
-            <button type="submit" class="btn"><%= recipe ? "Save Changes" : "Publish Recipe 🥕" %></button>
+            <button type="submit" class="btn"><%= recipe ? "Save Changes" : "Publish Recipe" %></button>
             <a href="/recipes<%= emailParam %>" class="btn btn-secondary">Cancel</a>
           </div>
 
@@ -179,8 +179,8 @@
           <!-- Header -->
           <div class="rf-bowl-header">
             <div class="rf-bowl-tabs">
-              <button type="button" class="rf-bowl-tab active" data-bowl="food">🍽 Bowl</button>
-              <button type="button" class="rf-bowl-tab" data-bowl="drink">🥤 Drink</button>
+              <button type="button" class="rf-bowl-tab active" data-bowl="food">Bowl</button>
+              <button type="button" class="rf-bowl-tab" data-bowl="drink">Drink</button>
             </div>
             <span class="rf-bowl-count" id="rf-bowl-count">0 ingredients</span>
             <button type="button" class="rf-bowl-clear" id="rf-bowl-clear">Clear</button>
@@ -302,7 +302,7 @@
     if (_existingData) {
       JSON.parse(_existingData.textContent).forEach(ing => {
         const match = Object.values(CATS).flat().find(item => item[1].toLowerCase() === ing.toLowerCase().replace(/^\d+\s+/, ''));
-        addToList(ing, match ? match[0] : '🍽', true);
+        addToList(ing, match ? match[0] : '', true);
       });
     }
 
@@ -435,8 +435,7 @@
         const lbl=cnt>1?`${ing.label} ×${cnt}`:ing.label;
         const poly=ns('polyline');at(poly,{points:`${eX},${midY} ${mX},${midY} ${leX},${midY}`,stroke:ing.color,'stroke-width':'1',fill:'none'});fL.appendChild(poly);
         const dot=ns('circle');at(dot,{cx:eX,cy:midY,r:'2.5',fill:ing.color});fL.appendChild(dot);
-        const ei=ns('text');at(ei,{x:lX,y:midY+1,'font-size':'12','text-anchor':isR?'start':'end','dominant-baseline':'middle',fill:'#F5F3EE'});ei.textContent=ing.emoji;fL.appendChild(ei);
-        const tx=ns('text');at(tx,{x:isR?lX+17:lX-17,y:midY+1,'font-size':'9',fill:'#AAA89F','text-anchor':isR?'start':'end','dominant-baseline':'middle'});tx.textContent=lbl;fL.appendChild(tx);
+        const tx=ns('text');at(tx,{x:lX,y:midY+1,'font-size':'9',fill:'#AAA89F','text-anchor':isR?'start':'end','dominant-baseline':'middle'});tx.textContent=lbl;fL.appendChild(tx);
         curY=topY;
       });
 
@@ -459,8 +458,7 @@
         const ly=freeY(side,ey);
         const p2=ns('polyline');at(p2,{points:`${x},${ey-8} ${x},${ly} ${eX2},${ly} ${leX2},${ly}`,stroke:ing.color,'stroke-width':'0.8',fill:'none'});fT.appendChild(p2);
         const d2=ns('circle');at(d2,{cx:x,cy:ey-8,r:'2',fill:ing.color});fT.appendChild(d2);
-        const ei2=ns('text');at(ei2,{x:lX2,y:ly+1,'font-size':'12','text-anchor':goR?'start':'end','dominant-baseline':'middle',fill:'#F5F3EE'});ei2.textContent=ing.emoji;fT.appendChild(ei2);
-        const lb2=ns('text');at(lb2,{x:goR?lX2+17:lX2-17,y:ly+1,'font-size':'9',fill:'#AAA89F','text-anchor':goR?'start':'end','dominant-baseline':'middle'});lb2.textContent=cnt2>1?`${ing.label} ×${cnt2}`:ing.label;fT.appendChild(lb2);
+        const lb2=ns('text');at(lb2,{x:lX2,y:ly+1,'font-size':'9',fill:'#AAA89F','text-anchor':goR?'start':'end','dominant-baseline':'middle'});lb2.textContent=cnt2>1?`${ing.label} ×${cnt2}`:ing.label;fT.appendChild(lb2);
       });
     }
 
@@ -504,8 +502,7 @@
         const lbl=cnt>1?`${ing.label} ×${cnt}`:ing.label;
         const poly=ns('polyline');at(poly,{points:`${eX},${midY} ${mX},${midY} ${leX},${midY}`,stroke:ing.color,'stroke-width':'1',fill:'none'});dL.appendChild(poly);
         const dot=ns('circle');at(dot,{cx:eX,cy:midY,r:'2.5',fill:ing.color});dL.appendChild(dot);
-        const ei=ns('text');at(ei,{x:lX,y:midY+1,'font-size':'12','text-anchor':isR?'start':'end','dominant-baseline':'middle',fill:'#F5F3EE'});ei.textContent=ing.emoji;dL.appendChild(ei);
-        const tx=ns('text');at(tx,{x:isR?lX+17:lX-17,y:midY+1,'font-size':'9',fill:'#AAA89F','text-anchor':isR?'start':'end','dominant-baseline':'middle'});tx.textContent=lbl;dL.appendChild(tx);
+        const tx=ns('text');at(tx,{x:lX,y:midY+1,'font-size':'9',fill:'#AAA89F','text-anchor':isR?'start':'end','dominant-baseline':'middle'});tx.textContent=lbl;dL.appendChild(tx);
         curY=topY;
       });
     }
@@ -528,11 +525,11 @@
         b.id = 'drbtn-' + ing.id;
         const qty = document.createElement('span');
         qty.className = 'rf-dqty'; qty.textContent = '0'; qty.style.display = 'none';
-        b.innerHTML = `<span>${ing.emoji}</span>${ing.label}`;
+        b.textContent = ing.label;
         b.appendChild(qty);
         b.addEventListener('click', () => {
           dcounts[ing.id] = (dcounts[ing.id] || 0) + 1;
-          addToList(ing.label, ing.emoji, true);
+          addToList(ing.label, '', true);
           qty.textContent = dcounts[ing.id]; qty.style.display = 'inline';
           drawDrink();
         });
@@ -709,11 +706,11 @@
         const countBadge = document.createElement('span');
         countBadge.className = 'rf-chip-count';
         countBadge.textContent = '0';
-        chip.innerHTML = emoji + ' ' + name;
+        chip.textContent = name;
         chip.appendChild(countBadge);
 
         chip.addEventListener('click', () => {
-          addToList(name, emoji, false);
+          addToList(name, '', false);
           const current = parseInt(countBadge.textContent || '0');
           countBadge.textContent = current + 1;
           chip.classList.add('has-items');
@@ -742,7 +739,7 @@
     function addCustom() {
       const val = customInput.value.trim();
       if (!val) return;
-      addToList(val, '🍽', false);
+      addToList(val, '', false);
       customInput.value = '';
     }
 
