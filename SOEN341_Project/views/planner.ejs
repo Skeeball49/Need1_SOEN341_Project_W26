@@ -137,6 +137,43 @@
 
   </main>
 
+  <script>
+    const daySelect = document.querySelector('select[name="day"]');
+    const mealTypeSelect = document.querySelector('select[name="meal_type"]');
+    const recipeSelect = document.querySelector('select[name="recipe_id"]');
+    
+    const grid = <%- JSON.stringify(grid) %>;
+    const allRecipes = <%- JSON.stringify(recipes) %>;
+    
+    function updateRecipeOptions() {
+      const selectedDay = daySelect.value;
+      const selectedMealType = mealTypeSelect.value;
+      
+      const usedRecipeIds = new Set();
+      if (grid[selectedDay] && grid[selectedDay][selectedMealType]) {
+        grid[selectedDay][selectedMealType].forEach(entry => {
+          usedRecipeIds.add(entry.recipe_id);
+        });
+      }
+      
+      recipeSelect.innerHTML = '<option value="">Choose a recipe</option>';
+      allRecipes.forEach(recipe => {
+        if (!usedRecipeIds.has(recipe.id)) {
+          const option = document.createElement('option');
+          option.value = recipe.id;
+          option.textContent = recipe.title;
+          recipeSelect.appendChild(option);
+        }
+      });
+    }
+    
+    if (daySelect && mealTypeSelect && recipeSelect) {
+      daySelect.addEventListener('change', updateRecipeOptions);
+      mealTypeSelect.addEventListener('change', updateRecipeOptions);
+      updateRecipeOptions();
+    }
+  </script>
+
   <%- include("../partials/footer") %>
 </body>
 </html>
