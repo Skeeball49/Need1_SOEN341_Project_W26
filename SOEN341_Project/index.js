@@ -23,7 +23,7 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
+export const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -936,15 +936,19 @@ app.post("/delete-account", async (req, res) => {
   res.redirect("/login");
 });
 
-app.listen(3000, async () => {
-  console.log("http://localhost:3000");
+const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === __filename;
 
-  // Verify meal_plans table exists; warn if not yet created in Supabase
-  const { error } = await supabase.from("meal_plans").select("id").limit(1);
-  if (error) {
-    console.warn(
-      "\n[MealMajor] WARNING: 'meal_plans' table not found in Supabase.\n" +
-      "Run schema.sql in your Supabase SQL Editor to create it.\n"
-    );
-  }
-});
+if (isDirectRun) {
+  app.listen(3000, async () => {
+    console.log("http://localhost:3000");
+
+    // Verify meal_plans table exists; warn if not yet created in Supabase
+    const { error } = await supabase.from("meal_plans").select("id").limit(1);
+    if (error) {
+      console.warn(
+        "\n[MealMajor] WARNING: 'meal_plans' table not found in Supabase.\n" +
+        "Run schema.sql in your Supabase SQL Editor to create it.\n"
+      );
+    }
+  });
+}
