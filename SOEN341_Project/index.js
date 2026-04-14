@@ -306,6 +306,22 @@ app.post("/planner/add", async (req, res) => {
 
   const weekStart = getWeekStart();
 
+  // WP-5: Prevent duplicate recipe in the exact same day+meal_type slot
+  const { data: exactDuplicate } = await supabase
+    .from("meal_plans")
+    .select("id")
+    .eq("user_email", email)
+    .eq("week_start", weekStart)
+    .eq("day", day)
+    .eq("meal_type", meal_type)
+    .eq("recipe_id", recipe_id);
+
+  if (exactDuplicate && exactDuplicate.length > 0) {
+    return res.redirect(
+      `/planner?email=${encodeURIComponent(email)}&error=This+recipe+is+already+in+${encodeURIComponent(day)}+${encodeURIComponent(meal_type)}`
+    );
+  }
+
   // WP-5: Prevent duplicate recipe on the same day (any meal type)
   const { data: dayDuplicate } = await supabase
     .from("meal_plans")

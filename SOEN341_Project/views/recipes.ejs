@@ -75,7 +75,7 @@
       <% recipes.forEach(r => {
         const emoji = catEmoji[r.category] || '🍽';
         const ingPreview = (r.ingredients || []).slice(0, 4).map(i => {
-          const m = i.match(/^[\d.]+\s+(.+)$/);
+          const m = i.match(/^[\d./]+\s*[a-zA-Z]*\s+(.+)$/) || i.match(/^[a-zA-Z]+\s+(.+)$/);
           return m ? m[1] : i;
         }).join(', ');
       %>

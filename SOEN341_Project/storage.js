@@ -14,7 +14,9 @@ export async function findUser(email) {
 export async function createUser(userData) {
   const { error } = await supabase.from("users").insert(userData);
   if (error) {
-    console.error("[createUser] Supabase error:", error.message);
+    if (process.env.NODE_ENV !== "test") {
+      console.error("[createUser] Supabase error:", error.message);
+    }
     return { ok: false, message: error.message };
   }
   return { ok: true };
