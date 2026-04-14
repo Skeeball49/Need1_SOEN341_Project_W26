@@ -16,6 +16,23 @@ export function getWeekStart(date = new Date()) {
 }
 
 /**
+ * Generates a unique code for a recipe based on its title and ID.
+ * Format: First letters of each word (uppercase) + last 4 chars of ID
+ * e.g. "Chicken Caesar Salad" with id "abc123" => "CCS-C123"
+ * @param {string} title
+ * @param {string|number} id
+ * @returns {string}
+ */
+export function generateRecipeCode(title, id) {
+  const initials = title
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase())
+    .join("");
+  const idSuffix = String(id).slice(-4).toUpperCase();
+  return `${initials}-${idSuffix}`;
+}
+
+/**
  * Parses a raw ingredient string (e.g. "2 cups flour") into { qty, name }.
  * Falls back to { qty: 1, name: raw } when no leading number is found.
  * @param {string} raw

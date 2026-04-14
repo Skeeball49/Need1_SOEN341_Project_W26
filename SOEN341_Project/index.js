@@ -7,6 +7,7 @@ import { findUser, createUser, updateUser } from "./storage.js";
 import { supabase } from "./supabase.js";
 import {
   getWeekStart,
+  generateRecipeCode,
   parseIngredient,
   categorizeIngredient,
   consolidateIngredients,
@@ -271,6 +272,12 @@ app.get("/planner", async (req, res) => {
 
   const { data: recipes } = await supabase.from("recipes").select("id, title");
 
+  // Generate a unique code for each recipe
+  const recipesWithCode = (recipes || []).map(r => ({
+    ...r,
+    code: generateRecipeCode(r.title, r.id)
+  }));
+
   // Build grid: { Day: { MealType: [entries] } }
   const grid = {};
   for (const day of DAYS) {
@@ -290,7 +297,7 @@ app.get("/planner", async (req, res) => {
     grid,
     days: DAYS,
     mealTypes: MEAL_TYPES,
-    recipes: recipes || [],
+    recipes: recipesWithCode,
     weekStart,
     error,
     success,
@@ -306,6 +313,19 @@ app.post("/planner/add", async (req, res) => {
 
   const weekStart = getWeekStart();
 
+  // Get recipe details first for code generation
+  const { data: recipe } = await supabase
+    .from("recipes")
+    .select("id, title")
+    .eq("id", recipe_id)
+    .single();
+
+  if (!recipe) {
+    return res.redirect(`/planner?email=${encodeURIComponent(email)}&error=Recipe+not+found`);
+  }
+
+  const recipeCode = generateRecipeCode(recipe.title, recipe.id);
+
   // WP-5: Prevent duplicate recipe in the exact same day+meal_type slot
   const { data: exactDuplicate } = await supabase
     .from("meal_plans")
@@ -318,56 +338,20 @@ app.post("/planner/add", async (req, res) => {
 
   if (exactDuplicate && exactDuplicate.length > 0) {
     return res.redirect(
-      `/planner?email=${encodeURIComponent(email)}&error=This+recipe+is+already+in+${encodeURIComponent(day)}+${encodeURIComponent(meal_type)}`
+      `/planner?email=${encodeURIComponent(email)}&error=Duplicate+detected!+Recipe+${encodeURIComponent(recipeCode)}+is+already+in+${encodeURIComponent(day)}+${encodeURIComponent(meal_type)}`
     );
   }
-
-  // WP-5: Prevent duplicate recipe on the same day (any meal type)
-  const { data: dayDuplicate } = await supabase
-    .from("meal_plans")
-    .select("id")
-    .eq("user_email", email)
-    .eq("week_start", weekStart)
-    .eq("day", day)
-    .eq("recipe_id", recipe_id);
-
-  if (dayDuplicate && dayDuplicate.length > 0) {
-    return res.redirect(
-      `/planner?email=${encodeURIComponent(email)}&error=This+recipe+is+already+planned+for+${encodeURIComponent(day)}`
-    );
-  }
-
-  // WP-5: Prevent duplicate recipe at the same meal time across the week
-  const { data: timeDuplicate } = await supabase
-    .from("meal_plans")
-    .select("id")
-    .eq("user_email", email)
-    .eq("week_start", weekStart)
-    .eq("meal_type", meal_type)
-    .eq("recipe_id", recipe_id);
-
-  if (timeDuplicate && timeDuplicate.length > 0) {
-    return res.redirect(
-      `/planner?email=${encodeURIComponent(email)}&error=This+recipe+is+already+planned+for+${encodeURIComponent(meal_type)}+this+week`
-    );
-  }
-
-  const { data: recipe } = await supabase
-    .from("recipes")
-    .select("title")
-    .eq("id", recipe_id)
-    .single();
 
   await supabase.from("meal_plans").insert({
     user_email: email,
     week_start: weekStart,
     day,
     meal_type,
-    recipe_id: Number(recipe_id),
-    recipe_title: recipe?.title || "Unknown",
+    recipe_id,
+    recipe_title: recipe.title,
   });
 
-  res.redirect(`/planner?email=${encodeURIComponent(email)}&success=Meal+added`);
+  res.redirect(`/planner?email=${encodeURIComponent(email)}&success=Meal+added+(${encodeURIComponent(recipeCode)})`);
 });
 
 // WP-4: Remove a meal entry from the planner

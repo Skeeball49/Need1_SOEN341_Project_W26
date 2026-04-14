@@ -83,7 +83,7 @@
               <select name="recipe_id" required>
                 <option value="">Choose a recipe</option>
                 <% recipes.forEach(r => { %>
-                  <option value="<%= r.id %>"><%= r.title %></option>
+                  <option value="<%= r.id %>">[<%= r.code %>] <%= r.title %></option>
                 <% }) %>
               </select>
             </label>
@@ -161,7 +161,7 @@
         if (!usedRecipeIds.has(recipe.id)) {
           const option = document.createElement('option');
           option.value = recipe.id;
-          option.textContent = recipe.title;
+          option.textContent = `[${recipe.code}] ${recipe.title}`;
           recipeSelect.appendChild(option);
         }
       });
