@@ -5,6 +5,18 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { findUser, createUser, updateUser } from "./storage.js";
 import { supabase } from "./supabase.js";
+import {
+  getWeekStart,
+  parseIngredient,
+  categorizeIngredient,
+  consolidateIngredients,
+  calculateMatchPercentage,
+  calculateDailyBreakdown,
+  calculateWeeklyStats,
+  buildRecipeObject,
+  scaleIngredient,
+  validateRegistration,
+} from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,11 +56,9 @@ app.get("/register", (req, res) => {
 app.post("/register", async (req, res) => {
   const { email, password, ConfirmPassword } = req.body;
 
-  if (!email || !password || !ConfirmPassword) {
-    return res.render("register.ejs", { error: "Please fill in all fields." });
-  }
-  if (password !== ConfirmPassword) {
-    return res.render("register.ejs", { error: "Passwords do not match." });
+  const validation = validateRegistration(email, password, ConfirmPassword);
+  if (!validation.valid) {
+    return res.render("register.ejs", { error: validation.error });
   }
 
   const exists = await findUser(email);
@@ -194,28 +204,13 @@ app.get("/recipes/new", async (req, res) => {
 });
 
 app.post("/recipes", async (req, res) => {
-  const { title, ingredients, prepTime, steps, cost, difficulty, tags, servings, calories, protein, carbs, fat, category } = req.body;
+  const { title, ingredients, steps } = req.body;
 
   if (!title || !ingredients || !steps) {
     return res.render("recipe-form", { recipe: null, error: "Title, ingredients, and steps are required." });
   }
 
-  const recipe = {
-    title: title.trim(),
-    ingredients: ingredients.split("\n").map(s => s.trim()).filter(Boolean),
-    prepTime: Number(prepTime || 0),
-    steps: steps.split("\n").map(s => s.trim()).filter(Boolean),
-    cost: Number(cost || 0),
-    difficulty: difficulty || "Easy",
-    tags: (tags || "").split(",").map(s => s.trim()).filter(Boolean),
-    servings: Number(servings || 4),
-    calories: Number(calories || 0),
-    protein: Number(protein || 0),
-    carbs: Number(carbs || 0),
-    fat: Number(fat || 0),
-    category: category || "Main Course"
-  };
-
+  const recipe = buildRecipeObject(req.body);
   await supabase.from("recipes").insert(recipe);
 
   const { email = "" } = req.body;
@@ -239,24 +234,7 @@ app.get("/recipes/:id/edit", async (req, res) => {
 });
 
 app.post("/recipes/:id", async (req, res) => {
-  const { title, ingredients, prepTime, steps, cost, difficulty, tags, servings, calories, protein, carbs, fat, category } = req.body;
-
-  const updates = {
-    title: title.trim(),
-    ingredients: ingredients.split("\n").map(s => s.trim()).filter(Boolean),
-    prepTime: Number(prepTime || 0),
-    steps: steps.split("\n").map(s => s.trim()).filter(Boolean),
-    cost: Number(cost || 0),
-    difficulty: difficulty || "Easy",
-    tags: (tags || "").split(",").map(s => s.trim()).filter(Boolean),
-    servings: Number(servings || 4),
-    calories: Number(calories || 0),
-    protein: Number(protein || 0),
-    carbs: Number(carbs || 0),
-    fat: Number(fat || 0),
-    category: category || "Main Course"
-  };
-
+  const updates = buildRecipeObject(req.body);
   await supabase.from("recipes").update(updates).eq("id", req.params.id);
 
   const { email = "" } = req.body;
@@ -274,15 +252,6 @@ app.post("/recipes/:id/delete", async (req, res) => {
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
-
-// Returns the ISO date string (YYYY-MM-DD) for the Monday of the current week
-function getWeekStart() {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  return d.toISOString().split("T")[0];
-}
 
 // WP-1 / WP-2: View weekly meal planner grid
 app.get("/planner", async (req, res) => {
@@ -408,53 +377,7 @@ app.get("/grocery", async (req, res) => {
     .select("*")
     .eq("user_email", email);
 
-  const pantryMap = {};
-  for (const item of pantryItems || []) {
-    pantryMap[item.ingredient_name.toLowerCase().trim()] = Number(item.quantity || 0);
-  }
-
-  // Consolidate ingredients: parse leading numbers and sum quantities
-  const ingredientMap = {};
-  let totalCost = 0;
-
-  for (const recipe of recipes || []) {
-    totalCost += Number(recipe.cost || 0);
-    for (const raw of recipe.ingredients || []) {
-      const match = raw.trim().match(/^(\d+(?:\.\d+)?)\s+(.+)$/);
-      if (match) {
-        const qty = parseFloat(match[1]);
-        const name = match[2].toLowerCase().trim();
-        ingredientMap[name] = (ingredientMap[name] || 0) + qty;
-      } else {
-        const name = raw.toLowerCase().trim();
-        ingredientMap[name] = (ingredientMap[name] || 0) + 1;
-      }
-    }
-  }
-
-  // Subtract pantry quantities and filter out items we already have
-  const groceryList = Object.entries(ingredientMap)
-    .map(([name, needed]) => {
-      const inPantry = pantryMap[name] || 0;
-      const toBuy = Math.max(0, needed - inPantry);
-      
-      // Try to match category from pantry items
-      let category = "Other";
-      const pantryItem = (pantryItems || []).find(p => p.ingredient_name.toLowerCase() === name);
-      if (pantryItem && pantryItem.category) {
-        category = pantryItem.category;
-      } else {
-        // Auto-categorize common items
-        if (name.includes("milk") || name.includes("cheese") || name.includes("yogurt") || name.includes("butter")) category = "Dairy";
-        else if (name.includes("chicken") || name.includes("beef") || name.includes("pork") || name.includes("fish")) category = "Meat";
-        else if (name.includes("apple") || name.includes("banana") || name.includes("lettuce") || name.includes("tomato")) category = "Produce";
-        else if (name.includes("rice") || name.includes("pasta") || name.includes("bread") || name.includes("flour")) category = "Grains";
-      }
-      
-      return { name, needed, inPantry, toBuy, category };
-    })
-    .filter(item => item.toBuy > 0)
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const { groceryList, totalCost } = consolidateIngredients(recipes || [], pantryItems || []);
 
   // Group by category
   const groupedList = {};
@@ -567,25 +490,18 @@ app.get("/recommendations", async (req, res) => {
 
   // Calculate match percentage for each recipe
   const recipesWithMatch = (allRecipes || []).map(recipe => {
-    const recipeIngredients = (recipe.ingredients || []).map(ing => {
-      const match = ing.trim().match(/^(\d+(?:\.\d+)?)\s+(.+)$/);
-      return match ? match[2].toLowerCase().trim() : ing.toLowerCase().trim();
-    });
-
-    const matchedIngredients = recipeIngredients.filter(ing => 
-      pantryIngredients.some(pantryIng => ing.includes(pantryIng) || pantryIng.includes(ing))
-    );
-
-    const matchPercentage = recipeIngredients.length > 0 
-      ? Math.round((matchedIngredients.length / recipeIngredients.length) * 100)
-      : 0;
+    const recipeIngredients = (recipe.ingredients || []).map(ing => parseIngredient(ing).name);
+    const matchPercentage = calculateMatchPercentage(recipe, pantryIngredients);
+    const matchedCount = recipeIngredients.filter(ing =>
+      pantryIngredients.some(p => ing.includes(p) || p.includes(ing))
+    ).length;
 
     return {
       ...recipe,
       matchPercentage,
-      matchedCount: matchedIngredients.length,
+      matchedCount,
       totalIngredients: recipeIngredients.length,
-      missingCount: recipeIngredients.length - matchedIngredients.length
+      missingCount: recipeIngredients.length - matchedCount,
     };
   });
 
@@ -762,31 +678,8 @@ app.get("/nutrition", async (req, res) => {
     recipeMap[recipe.id] = recipe;
   }
 
-  // Calculate daily breakdown
-  const dailyBreakdown = DAYS.map(day => {
-    const dayEntries = planEntries.filter(e => e.day === day);
-    let calories = 0, protein = 0, carbs = 0, fat = 0;
-
-    for (const entry of dayEntries) {
-      const recipe = recipeMap[entry.recipe_id];
-      if (recipe) {
-        calories += Number(recipe.calories || 0);
-        protein += Number(recipe.protein || 0);
-        carbs += Number(recipe.carbs || 0);
-        fat += Number(recipe.fat || 0);
-      }
-    }
-
-    return { day, calories, protein, carbs, fat };
-  });
-
-  // Calculate weekly totals
-  const weeklyStats = dailyBreakdown.reduce((acc, day) => ({
-    calories: acc.calories + day.calories,
-    protein: acc.protein + day.protein,
-    carbs: acc.carbs + day.carbs,
-    fat: acc.fat + day.fat
-  }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+  const dailyBreakdown = calculateDailyBreakdown(planEntries, recipeMap, DAYS);
+  const weeklyStats    = calculateWeeklyStats(dailyBreakdown);
 
   res.render("nutrition", { user, goals, weeklyStats, dailyBreakdown, weekStart });
 });
@@ -913,19 +806,12 @@ app.get("/recipes/:id/scale", async (req, res) => {
   const scaledRecipe = {
     ...recipe,
     servings: newServings,
-    ingredients: recipe.ingredients.map(ing => {
-      const match = ing.trim().match(/^(\d+(?:\.\d+)?)\s+(.+)$/);
-      if (match) {
-        const qty = parseFloat(match[1]) * scale;
-        return `${qty.toFixed(1)} ${match[2]}`;
-      }
-      return ing;
-    }),
+    ingredients: recipe.ingredients.map(ing => scaleIngredient(ing, scale)),
     calories: Math.round(recipe.calories * scale),
     protein: (recipe.protein * scale).toFixed(1),
-    carbs: (recipe.carbs * scale).toFixed(1),
-    fat: (recipe.fat * scale).toFixed(1),
-    cost: (recipe.cost * scale).toFixed(2)
+    carbs:   (recipe.carbs   * scale).toFixed(1),
+    fat:     (recipe.fat     * scale).toFixed(1),
+    cost:    (recipe.cost    * scale).toFixed(2),
   };
 
   res.json(scaledRecipe);
