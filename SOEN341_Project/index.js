@@ -306,19 +306,33 @@ app.post("/planner/add", async (req, res) => {
 
   const weekStart = getWeekStart();
 
-  // WP-5: Prevent duplicate recipe in the same week/day/meal-type slot
-  const { data: existing } = await supabase
+  // WP-5: Prevent duplicate recipe on the same day (any meal type)
+  const { data: dayDuplicate } = await supabase
     .from("meal_plans")
     .select("id")
     .eq("user_email", email)
     .eq("week_start", weekStart)
     .eq("day", day)
+    .eq("recipe_id", recipe_id);
+
+  if (dayDuplicate && dayDuplicate.length > 0) {
+    return res.redirect(
+      `/planner?email=${encodeURIComponent(email)}&error=This+recipe+is+already+planned+for+${encodeURIComponent(day)}`
+    );
+  }
+
+  // WP-5: Prevent duplicate recipe at the same meal time across the week
+  const { data: timeDuplicate } = await supabase
+    .from("meal_plans")
+    .select("id")
+    .eq("user_email", email)
+    .eq("week_start", weekStart)
     .eq("meal_type", meal_type)
     .eq("recipe_id", recipe_id);
 
-  if (existing && existing.length > 0) {
+  if (timeDuplicate && timeDuplicate.length > 0) {
     return res.redirect(
-      `/planner?email=${encodeURIComponent(email)}&error=That+recipe+is+already+planned+for+this+slot`
+      `/planner?email=${encodeURIComponent(email)}&error=This+recipe+is+already+planned+for+${encodeURIComponent(meal_type)}+this+week`
     );
   }
 
