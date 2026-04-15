@@ -1,0 +1,22 @@
+Meeting Minutes
+Project: MealMajor Meal Prep and Healthy Living Planner
+Location: Online (Discord)
+
+April 4, 2026
+Discussion: Bug fixing priorities, static analysis setup, and CI/CD unit test planning.
+Outcome: Identified bugs (pantry crashes, grocery list display, planner UI, duplicate recipe block). Set up ESLint for static analysis. Began writing unit tests for WP-1 through WP-5.
+
+April 7, 2026
+Discussion: Unit test progress, acceptance test writing, and peer code review assignments.
+Outcome: Unit tests added for core logic. Each member assigned peer review duties for Sprint 4 features. Acceptance tests drafted for all user stories.
+
+April 9, 2026
+Discussion: Final bug fixes, CI/CD pipeline validation, and demo prep.
+Outcome: Fixed remaining flagged ESLint issues. Confirmed all tests pass on pipeline. Finalized meeting minutes and contribution logs.
+
+Team Members and Roles
+Ibrahim Senhaji (40316859): Bug fixes, CI/CD pipeline scoping, unit test infrastructure
+Sebastien Keenan (40246291): Static analysis (ESLint), recipe test fixes, CI integration
+Santiago Restrepodiaz (40212913): UI fixes, planner improvements
+Obi (40235035): E2E test fixes, acceptance tests, recipe test updates
+Amir Shiri (40266795): Meeting minutes, Sprint 4 documentation, unit test support
